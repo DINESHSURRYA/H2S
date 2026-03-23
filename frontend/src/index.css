@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root {
+  --bg-deep: #020617;
+  --bg-surface: #0f172a;
+}
+
+/* Global Reset & Base Typography */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-deep);
+  color: #f8fafc;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: none; /* Hide default OS cursor for clean SPA experience */
+}
+
+/* Ensure clickable elements still look interactive even without default pointer */
+a, button {
+  cursor: none !important;
+}
+
+#root {
+  width: 100%;
+}

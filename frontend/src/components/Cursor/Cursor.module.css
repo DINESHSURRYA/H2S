@@ -1,0 +1,70 @@
+.pointer {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  z-index: 10000;
+  transform: translate(-50%, -50%);
+}
+
+.arrow {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 12px solid #fff; /* Crisp white arrow for visibility */
+  transform: rotate(-45deg); /* Classic pointer angle */
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+}
+
+.ghTrail {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(20px, 20px); /* Offset from the main pointer */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease, color 0.4s ease;
+}
+
+.ghText {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #6366f1; /* Initial primary color (Indigo) */
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.hoverActive .ghText {
+  color: #ec4899; /* Target hover color (Neon Pink) */
+  text-shadow: 0 0 15px rgba(236, 72, 153, 0.8);
+  font-size: 1.2rem;
+  letter-spacing: 0.3em;
+}
+
+.glowPulse {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulse 2s infinite ease-in-out;
+  transition: background 0.4s ease;
+}
+
+.hoverActive .glowPulse {
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.25) 0%, transparent 70%);
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+
+/* Ensure clickable elements don't show the default cursor */
+:global(a), :global(button) {
+  cursor: none !important;
+}

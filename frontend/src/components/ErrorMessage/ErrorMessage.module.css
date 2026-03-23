@@ -1,0 +1,34 @@
+.errorBox {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+  color: #ef4444;
+  backdrop-filter: blur(8px); /* Modern glassmorphism blur effect */
+  animation: shake 0.5s ease-in-out; /* Attention-grabbing entrance */
+}
+
+.icon {
+  font-size: 1.5rem;
+}
+
+.title {
+  font-weight: 700;
+  margin: 0;
+}
+
+.message {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin: 0.25rem 0 0;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}

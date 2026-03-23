@@ -1,0 +1,72 @@
+.card {
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.25rem;
+  padding: 2.5rem;
+  position: relative;
+  transition: all 0.3s ease;
+  animation: slideLeft 0.8s ease-out; /* Entrance animation for User slice */
+  overflow: hidden;
+}
+
+.card:hover {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(99, 102, 241, 0.4); /* Primary color hover border */
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.15); /* Pulsating glow on hover */
+}
+
+.indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: #6366f1; /* Primary identifier strip */
+}
+
+.userRef {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: #6366f1;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.title {
+  margin: 0 0 2rem;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.statBox {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 0.65rem;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+}
+
+.value {
+  font-size: 1.1rem;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}

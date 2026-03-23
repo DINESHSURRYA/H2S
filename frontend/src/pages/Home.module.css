@@ -1,0 +1,27 @@
+.homeContainer {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.title {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 800;
+}
+
+.highlight {
+  color: #6366f1;
+}
+
+.description {
+  max-width: 600px;
+  margin: 0 auto 3rem;
+  color: #94a3b8;
+  line-height: 1.8;
+}
+
+.actionGrid {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+}
