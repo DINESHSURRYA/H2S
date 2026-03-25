@@ -10,12 +10,19 @@ class HelpRequestRepository {
     return await HelpRequest.findById(id);
   }
 
-  async getAllPendingRequests() {
-    return await HelpRequest.find({ status: 'pending' }).sort({ createdAt: -1 });
+  async getAllPendingRequests(volunteerId = null) {
+    const query = { status: 'pending' };
+    if (volunteerId) {
+      query.raisedBy = { $ne: volunteerId };
+    }
+    return await HelpRequest.find(query).sort({ createdAt: -1 });
   }
 
   async getRequestsByVolunteer(volunteerId) {
-    return await HelpRequest.find({ approvedBy: volunteerId }).sort({ createdAt: -1 });
+    return await HelpRequest.find({ 
+      approvedBy: volunteerId, 
+      raisedBy: { $ne: volunteerId } 
+    }).sort({ createdAt: -1 });
   }
 
   async getRequestsRaisedByVolunteer(volunteerId) {

@@ -4,7 +4,7 @@ export const createRequest = async (req, res, next) => {
   try {
     const { name, contactInfo, email, location, description, products, raisedBy } = req.body;
 
-    const newRequest = await helpRequestRepository.createHelpRequest({
+    const requestData = {
       name,
       contactInfo,
       email,
@@ -12,7 +12,15 @@ export const createRequest = async (req, res, next) => {
       description,
       products,
       raisedBy,
-    });
+    };
+
+    // If raised by a logged-in volunteer, auto-approve it
+    if (raisedBy) {
+      requestData.status = 'in-progress';
+      requestData.approvedBy = raisedBy;
+    }
+
+    const newRequest = await helpRequestRepository.createHelpRequest(requestData);
 
     res.status(201).json({
       message: 'Help request created successfully',
@@ -26,7 +34,8 @@ export const createRequest = async (req, res, next) => {
 
 export const getPendingRequests = async (req, res, next) => {
   try {
-    const requests = await helpRequestRepository.getAllPendingRequests();
+    const { volunteerId } = req.query;
+    const requests = await helpRequestRepository.getAllPendingRequests(volunteerId);
     res.status(200).json(requests);
   } catch (error) {
     next(error);
