@@ -33,3 +33,29 @@ export const loginVolunteer = (data) => {
     data,
   });
 };
+
+export const createHelpRequest = (data) => {
+  return apiClient('/help-request/create', {
+    method: 'POST',
+    data,
+  });
+};
+
+export const getPendingRequests = () => {
+  return apiClient('/help-request/pending');
+};
+
+export const getVolunteerRequests = (volunteerId) => {
+  return apiClient(`/help-request/volunteer/${volunteerId}`);
+};
+
+export const getVolunteerRaisedRequests = (volunteerId) => {
+  return apiClient(`/help-request/volunteer/${volunteerId}/raised`);
+};
+
+export const approveHelpRequest = (id, volunteerId) => {
+  return apiClient(`/help-request/${id}/approve`, {
+    method: 'PUT',
+    data: { volunteerId }
+  });
+};

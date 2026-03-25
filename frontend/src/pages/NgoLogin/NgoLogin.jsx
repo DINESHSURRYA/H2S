@@ -27,7 +27,7 @@ const NgoLogin = () => {
       const response = await loginNgo(formData);
       localStorage.setItem('ngoToken', response.token);
       localStorage.setItem('ngoData', JSON.stringify(response.ngo));
-      navigate('/');
+      navigate('/ngo/dashboard');
     } catch (err) {
       setError(err.message || 'Login failed');
     } finally {

@@ -27,7 +27,7 @@ const VolunteerLogin = () => {
       const response = await loginVolunteer(formData);
       localStorage.setItem('volunteerToken', response.token);
       localStorage.setItem('volunteerData', JSON.stringify(response.volunteer));
-      navigate('/');
+      navigate('/volunteer/dashboard');
     } catch (err) {
       setError(err.message || 'Login failed');
     } finally {

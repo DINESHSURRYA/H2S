@@ -6,6 +6,7 @@ import loggerMiddleware from './middlewares/loggerMiddleware.js';
 import ngoRoutes from './routes/ngoRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import volunteerRoutes from './routes/volunteerRoutes.js';
+import helpRequestRoutes from './routes/helpRequestRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -20,7 +21,16 @@ app.use(express.json());
 app.use(loggerMiddleware); // Custom logger
 app.use(morgan('dev'));    // Dev logging
 
+// Logger middleware for debugging
+app.use((req, res, next) => {
+  console.log(`[Express] ${req.method} ${req.url}`);
+  next();
+});
+
+// Diagnostic Route (Testing)
+
 // Routes
+app.use('/help-request', helpRequestRoutes);
 app.use('/ngo', ngoRoutes);
 app.use('/admin/api', adminRoutes);
 app.use('/volunteer', volunteerRoutes);

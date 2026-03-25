@@ -163,6 +163,45 @@ FRONTEND (per user action):
 7. CHANGE LOG
 ================================================================================
 
+[2026-03-25] Volunteer Operational & Navbar Refactor
+  WHAT: Built specialized `VolunteerRequestHelp` forum and expanded the 
+        `VolunteerDashboard` to track both approved and raised requests.
+  WHY:  Isolates personal help requests from public ones while automatically
+        handling volunteer identity verification for faster reporting.
+  
+  Key Features:
+    - Backend: Added `raisedBy` field to `HelpRequest` model, implemented 
+      specific filtering repository/controller methods.
+    - Frontend: `VolunteerRequestHelp.jsx` (specialized form), `VolunteerDashboard` 
+      (two-tier tracking for Raised/Approved tasks).
+    - Routing: Registered `/volunteer/request-help` route.
+    - Navbar: Selective visibility logic for "Raise Help Request" and "My Dashboard" 
+      based on volunteer authentication state.
+
+[2026-03-25] User Dashboards Initial Implementation
+  WHAT: Built dedicated post-login dashboards for NGOs and Volunteers.
+  WHY:  Provides users with a personalized space to see their profile, status,
+        and upcoming relevant help requests/missions.
+  
+  Key Features:
+    - Frontend: `NgoDashboard.jsx` and `VolunteerDashboard.jsx` components.
+    - Routing: Registered `/ngo/dashboard` and `/volunteer/dashboard` routes.
+    - Auth Flow: Modified login components to redirect users to their specific
+      dashboards instead of the homepage upon successful authentication.
+
+[2026-03-25] Request Help Feature Implementation & Improvements
+  WHAT: Added a "Request Help" portal where individuals can ask for resources, 
+        with dynamic support for multiple required products at once.
+  WHY:  Core utility for victims to reach out by providing details, GPS location,
+        and uniquely specifying the quantity and reason for each product needed.
+  
+  Key Features:
+    - Backend: `helpRequestModel.js` (refactored to array of products with quantities/reasons), 
+      `helpRequestRepository.js`, `helpRequestController.js`
+    - Frontend: `RequestHelp.jsx` with HTML5 Geolocation API integration and dynamic nested array form.
+    - Routes: Registered `/help-request/create` endpoint.
+    - Component: Added "Request Help" to the Navbar.
+
 [2026-03-25] Volunteer ID Verification (Aadhaar)
   WHAT: Added `aadharNumber` as a mandatory, unique identifier for Volunteers.
   WHY:  Provides a government-recognized unique identification for volunteer 

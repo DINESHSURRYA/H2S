@@ -15,7 +15,7 @@ export const apiClient = async (endpoint, options = {}) => {
   const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
   const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
 
-  console.log("Endpoint  : ", url);
+  console.log(`[apiClient] Request: ${method} ${url} (Base: "${baseUrl}")`);
   const config = {
     method,
     headers: {
@@ -32,7 +32,17 @@ export const apiClient = async (endpoint, options = {}) => {
   try {
     const res = await fetch(url, config);
     
-    const responseData = await res.json();
+    // Check if the response is JSON
+    const contentType = res.headers.get('content-type');
+    let responseData;
+    
+    if (contentType && contentType.includes('application/json')) {
+      responseData = await res.json();
+    } else {
+      // Fallback for non-JSON (like 404 HTML pages)
+      const textData = await res.text();
+      responseData = { message: textData || `HTTP error! status: ${res.status}` };
+    }
     
     if (!res.ok) {
       const error = new Error(responseData.message || `HTTP error! status: ${res.status}`);
