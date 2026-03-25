@@ -1,10 +1,16 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import userRoutes from './routes/userRoutes.js';
-import profileRoutes from './routes/profileRoutes.js';
 import errorMiddleware from './middlewares/errorMiddleware.js';
 import loggerMiddleware from './middlewares/loggerMiddleware.js';
+import ngoRoutes from './routes/ngoRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import volunteerRoutes from './routes/volunteerRoutes.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -15,8 +21,12 @@ app.use(loggerMiddleware); // Custom logger
 app.use(morgan('dev'));    // Dev logging
 
 // Routes
-app.use('/user', userRoutes);
-app.use('/profile', profileRoutes);
+app.use('/ngo', ngoRoutes);
+app.use('/admin/api', adminRoutes);
+app.use('/volunteer', volunteerRoutes);
+
+// Serve Admin Panel (Static HTML)
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 // Health check
 app.get('/health', (req, res) => {

@@ -19,11 +19,11 @@ const Navbar = () => {
         <NavLink to="/" className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}>
           Home
         </NavLink>
-        <NavLink to="/user" className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}>
-          User Data
+        <NavLink to="/register-choice" className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}>
+          Register
         </NavLink>
-        <NavLink to="/profile" className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}>
-          Profile Context
+        <NavLink to="/login-choice" className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}>
+          Login
         </NavLink>
       </div>
     </nav>

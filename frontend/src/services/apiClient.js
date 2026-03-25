@@ -4,22 +4,46 @@
  * @param {object} options - Optional fetch configuration.
  * @returns {Promise<any>} - The JSON response from the server.
  */
-export const apiClient = async (url, options = {}) => {
+/**
+ * Low-level API Client for reusable fetch calls.
+ * @param {string} endpoint - The API endpoint to call (e.g., '/ngo/login').
+ * @param {object} options - Optional fetch configuration.
+ * @returns {Promise<any>} - The JSON response from the server.
+ */
+export const apiClient = async (endpoint, options = {}) => {
+  const { method = 'GET', data, headers = {}, ...rest } = options;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+  const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+
+  console.log("Endpoint  : ", url);
+  const config = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+    ...rest,
+  };
+
+  if (data) {
+    config.body = JSON.stringify(data);
+  }
+
   try {
-    // Perform fetch request using provided URL and options
-    const res = await fetch(url, options);
+    const res = await fetch(url, config);
     
-    // Check if the response status is not successful
+    const responseData = await res.json();
+    
     if (!res.ok) {
-      throw new Error(`Endpoint error: ${res.status}`);
+      const error = new Error(responseData.message || `HTTP error! status: ${res.status}`);
+      error.status = res.status;
+      error.data = responseData;
+      throw error;
     }
     
-    // Parse the JSON data from the response body
-    const data = await res.json();
-    return data;
+    return responseData;
   } catch (error) {
-    // Log and re-throw error for higher-level handling
-    console.error("[apiClient] Fetch error:", error.message);
+    console.error(`[apiClient] Fetch error on ${endpoint}:`, error.message);
     throw error;
   }
 };

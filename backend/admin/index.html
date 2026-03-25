@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H2S Admin Dashboard</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, oxygen, ubuntu, cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Login Styles */
+        #login-section {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        /* Dashboard Styles */
+        #dashboard-section {
+            display: none;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn-logout {
+            width: auto;
+            padding: 0.5rem 1rem;
+            background: var(--danger);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-pending { background: #92400e; color: #fef3c7; }
+        .status-active { background: #065f46; color: #d1fae5; }
+        .status-suspended { background: #991b1b; color: #fee2e2; }
+
+        .actions-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            width: auto;
+            margin-right: 0.5rem;
+        }
+
+        .actions-btn:hover {
+            background: var(--border);
+        }
+
+        .btn-verify { border-color: var(--success); color: var(--success); }
+        .btn-suspend { border-color: var(--danger); color: var(--danger); }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Section -->
+        <div id="login-section">
+            <h1>Admin Login</h1>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="admin@h2s.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+            <button onclick="login()">Login</button>
+            <p id="login-error" style="color: var(--danger); font-size: 0.8rem; margin-top: 1rem; text-align: center;"></p>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section">
+            <div class="header-actions">
+                <h1>H2S Admin Panel</h1>
+                <button class="btn-logout" onclick="logout()">Logout</button>
+            </div>
+
+            <div id="ngo-list-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>NGO Name</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ngo-list-body">
+                        <!-- NGO rows will be inserted here -->
+                    </tbody>
+                </table>
+                <div id="loading" class="loading">Loading NGOs...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/admin/api';
+        let token = localStorage.getItem('adminToken');
+
+        if (token) {
+            showDashboard();
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorElement = document.getElementById('login-error');
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('adminToken', data.token);
+                    token = data.token;
+                    showDashboard();
+                } else {
+                    errorElement.textContent = data.message || 'Login failed';
+                }
+            } catch (error) {
+                errorElement.textContent = 'Server error';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            location.reload();
+        }
+
+        function showDashboard() {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('dashboard-section').style.display = 'block';
+            fetchNgos();
+        }
+
+        async function fetchNgos() {
+            const tableBody = document.getElementById('ngo-list-body');
+            const loading = document.getElementById('loading');
+            
+            try {
+                const response = await fetch(`${API_URL}/ngos`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.status === 401) return logout();
+
+                const ngos = await response.json();
+                loading.style.display = 'none';
+                tableBody.innerHTML = '';
+
+                ngos.forEach(ngo => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${ngo.name}</td>
+                        <td>${ngo.email}</td>
+                        <td><span class="status-badge status-${ngo.status}">${ngo.status}</span></td>
+                        <td>
+                            <button class="actions-btn btn-verify" onclick="verifyNgo('${ngo._id}', 'active')">Verify</button>
+                            <button class="actions-btn btn-suspend" onclick="verifyNgo('${ngo._id}', 'suspended')">Suspend</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                loading.textContent = 'Error loading data';
+            }
+        }
+
+        async function verifyNgo(id, status) {
+            try {
+                const response = await fetch(`${API_URL}/ngos/${id}/verify`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                if (response.ok) {
+                    fetchNgos();
+                } else {
+                    alert('Failed to update status');
+                }
+            } catch (error) {
+                alert('Server error');
+            }
+        }
+    </script>
+</body>
+</html>

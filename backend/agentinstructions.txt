@@ -1,0 +1,106 @@
+================================================================================
+  H2S BACKEND — AGENT INSTRUCTIONS
+  These rules MUST be followed in every iteration without exception.
+  Last Updated: 2026-03-25
+================================================================================
+
+PURPOSE
+-------
+This file defines the architectural constraints and coding rules for the H2S
+backend. The AI agent must read and follow these instructions at the start of
+every development iteration to maintain project integrity.
+
+================================================================================
+ARCHITECTURE RULES
+================================================================================
+
+1. REPOSITORY LAYER
+   -----------------
+   - Each repository "owns" exactly ONE database table/model.
+   - ALL queries for that table MUST live inside its repository file.
+   - Custom query functions should be created for specific needs, e.g.:
+       * getUserById(id)
+       * getUsersByRole(role)
+       * getActiveUsers()
+   - If another module/model needs data from a table, it MUST go through
+     that table's repository. Direct table access from outside is forbidden.
+   - Repositories return raw data — no business logic processing here.
+
+2. SERVICE LAYER
+   ---------------
+   - Services are like DSA problems: they receive INPUT and produce OUTPUT.
+   - A service MUST NEVER:
+       * Query the database directly (use repositories for that).
+       * Call another service (each service is self-contained).
+       * Produce side effects (no logging to DB, no external API calls).
+   - A service SHOULD:
+       * Perform computation, transformation, validation, or formatting.
+       * Be a pure function wherever possible.
+   - Example: a service receives a user object and a list of bookings,
+     then computes and returns a summary. It does NOT fetch that data itself.
+
+3. CONTROLLER LAYER (ORCHESTRATION)
+   ----------------------------------
+   - Controllers are the orchestrators — they coordinate the workflow.
+   - For each task (e.g., "create a booking"), the controller:
+       1. Receives the request from the route.
+       2. Calls the appropriate repository/repositories to get data.
+       3. Passes data to the appropriate service(s) for processing.
+       4. Assembles the final result.
+       5. Sends the HTTP response.
+   - Controllers extract all volatile/reusable logic into services.
+   - Controllers should NOT contain raw business logic — delegate it.
+
+4. ROUTE LAYER
+   -------------
+   - Routes are strictly for routing — mapping HTTP methods + paths to
+     controller functions.
+   - No business logic in route files.
+   - No direct database calls in route files.
+   - Use Express Router for modularity.
+
+5. MIDDLEWARE LAYER
+   -----------------
+   - Cross-cutting concerns only: error handling, logging, auth, validation.
+   - Middleware should be generic and reusable across routes.
+
+================================================================================
+CODING STANDARDS
+================================================================================
+
+1. MODULE SYSTEM:    ESM only (import/export). NO CommonJS (require/module.exports).
+2. FILE EXTENSIONS:  Always include .js in import paths for Node ESM compatibility.
+3. NAMING:
+   - Files:          camelCase (e.g., userRepository.js, bookingService.js)
+   - Functions:      camelCase (e.g., getUserById, calculateSummary)
+   - Constants:      UPPER_SNAKE_CASE (e.g., MAX_RETRIES, DEFAULT_PORT)
+4. ERROR HANDLING:   Use try-catch in controllers. Services throw errors upward.
+                     The centralized errorMiddleware catches unhandled errors.
+5. RESPONSE FORMAT:  Always use utils/response.js helpers for consistent API responses:
+                     { success: true/false, message: "...", data: {...} }
+
+================================================================================
+DEVELOPMENT WORKFLOW (PER FEATURE)
+================================================================================
+
+When building a new feature, follow this order:
+
+  1. Repository  → Define the data access functions needed.
+  2. Service     → Define the business logic / transformation functions.
+  3. Controller  → Wire repository + service together, handle request/response.
+  4. Route       → Map the HTTP endpoint to the controller function.
+  5. Register    → Import the route in app.js and register with app.use().
+
+================================================================================
+INTEGRITY CHECKS (BEFORE EVERY COMMIT)
+================================================================================
+
+  [ ] No service calls the database directly.
+  [ ] No service calls another service.
+  [ ] No controller contains raw business logic (should be in a service).
+  [ ] No route contains business logic (should be in a controller).
+  [ ] All imports use ESM syntax with .js extensions.
+  [ ] All API responses use the standard response format.
+  [ ] documentation.txt change log has been updated.
+
+================================================================================

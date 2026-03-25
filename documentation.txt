@@ -1,0 +1,260 @@
+================================================================================
+  H2S - SMART CRISIS MANAGEMENT SYSTEM
+  PROJECT DOCUMENTATION
+  Created: 2026-03-25
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+1. Project Overview
+2. Architecture Overview
+3. Backend Structure
+4. Frontend Structure
+5. Data Flow
+6. Development Conventions
+7. Change Log
+
+================================================================================
+1. PROJECT OVERVIEW
+================================================================================
+
+H2S is a Smart Crisis Management System built as a full-stack web application.
+
+Tech Stack:
+  - Backend:  Node.js, Express (ESM), Morgan, Dotenv
+  - Frontend: React 18, Vite, React Router 6, CSS Modules
+  - Standard: ES6+ (import/export) throughout — no CommonJS
+
+================================================================================
+2. ARCHITECTURE OVERVIEW
+================================================================================
+
+The system follows a strict Layered Clean Architecture pattern:
+
+  Request → Route → Controller → Service → Repository → Database
+  Response ← Route ← Controller ← Service ← Repository ← Database
+
+Key Principles:
+  - Each layer has a single, well-defined responsibility.
+  - Dependencies flow inward (routes depend on controllers, controllers on
+    services, services on repositories). Never the reverse.
+  - No layer may skip another layer (e.g., controllers must NOT query the
+    database directly).
+
+================================================================================
+3. BACKEND STRUCTURE
+================================================================================
+
+backend/
+  ├── config/              Centralized configuration (ports, env variables)
+  │   └── config.js        Reads from .env / provides defaults
+  │
+  ├── routes/              Express Router definitions
+  │                        Maps HTTP endpoints to controller functions.
+  │                        No business logic here — just routing.
+  │
+  ├── controllers/         Orchestration layer
+  │                        Receives requests from routes, coordinates between
+  │                        services, and returns responses.
+  │                        Think of it as the "conductor" — it doesn't do the
+  │                        work, it tells others what to do and assembles results.
+  │
+  ├── services/            Pure business logic
+  │                        Like DSA problems: receives input, produces output.
+  │                        MUST NOT query the database.
+  │                        MUST NOT call other services.
+  │                        Focuses on computation/transformation only.
+  │
+  ├── repository/          Data Access Layer
+  │                        Each repository "owns" one table/model.
+  │                        All database queries for that table live here.
+  │                        Custom query functions (e.g., getUserById,
+  │                        getUsersByRole) are defined here.
+  │                        If another model needs data from this table, it must
+  │                        go through this repository.
+  │
+  ├── middlewares/         Express middleware
+  │   ├── errorMiddleware.js   Centralized error handler
+  │   └── loggerMiddleware.js  Request timing logger
+  │
+  ├── utils/               Shared utilities
+  │   ├── response.js          Standard success/error response helpers
+  │   └── responseWrapper.js   Alternative response wrapper (ESM)
+  │
+  │  ├── initialiser_helpers/  Maintenance and seed scripts
+  │   ├── seed_admin.js         Initial admin account creator
+  │   └── test_auth.js          CLI authentication tester
+  │
+  ├── app.js               Express app setup (middleware, routes, error handler)
+  └── server.js            Entry point — starts the HTTP server
+
+================================================================================
+4. FRONTEND STRUCTURE
+================================================================================
+
+frontend/
+  ├── public/              Static assets served as-is
+  │
+  ├── src/
+  │   ├── components/      Reusable UI components (each in its own folder)
+  │   │   ├── Button/      Button component + CSS module
+  │   │   ├── Cursor/      Custom cursor effect + CSS module [REMOVED]
+  │   │   ├── ErrorMessage/ Error display component + CSS module
+  │   │   ├── InputField/  Modular input component + CSS module
+  │   │   ├── Loader/      Loading spinner + CSS module
+  │   │   └── Navbar/      Navigation bar + CSS module
+  │   │
+  │   ├── pages/           SPA page-level views
+  │   │   ├── Home.jsx           Landing page
+  │   │   ├── AuthChoice.jsx     Gate for NGO vs Volunteer selection
+  │   │   ├── NgoRegister.jsx    NGO signup form
+  │   │   ├── NgoLogin.jsx       NGO signin form
+  │   │   ├── VolunteerRegister.jsx Volunteer signup form
+  │   │   └── VolunteerLogin.jsx    Volunteer signin form
+  │   │
+  │   ├── services/        API communication layer
+  │   │   ├── apiClient.js   Low-level fetch wrapper (env-aware)
+  │   │   └── apiService.js  High-level functions per endpoint
+  │   │
+  │   ├── hooks/           Custom React hooks
+  │   │   └── useFetch.js  Centralized data fetching hook with refetch
+  │   │
+  │   ├── App.jsx          Root component — router + layout
+  │   ├── App.module.css   Root-level styles
+  │   ├── main.jsx         Vite entry point
+  │   └── index.css        Global CSS resets
+  │
+  ├── .env                 Frontend environment variables (VITE_API_BASE_URL)
+  ├── index.html           HTML shell for Vite
+  └── vite.config.js       Vite configuration + proxy setup
+
+================================================================================
+5. DATA FLOW
+================================================================================
+
+BACKEND (per request):
+
+  1. Route         → Receives HTTP request, delegates to controller
+  2. Controller    → Orchestrates: calls repository for data, passes to service
+                     for processing, sends response
+  3. Service       → Receives data, performs logic/transformation, returns result
+  4. Repository    → Executes specific database query, returns raw data
+
+FRONTEND (per user action):
+
+  1. Page/Component → Calls apiService function
+  2. apiService     → Calls apiClient with endpoint
+  3. apiClient      → Performs fetch(), handles errors, returns parsed JSON
+  4. useFetch hook  → Manages loading/error/data state + refetch capability
+
+================================================================================
+6. DEVELOPMENT CONVENTIONS
+================================================================================
+
+  - ESM Only:         Use import/export everywhere. No require/module.exports.
+  - File Extensions:  Always include .js in import paths (backend Node ESM).
+  - CSS Modules:      All component styling uses .module.css for isolation.
+  - No Inline Styles: Zero inline CSS in React components.
+  - One Repo = One Table: Each repository file owns exactly one DB table.
+  - Services are Pure: No DB calls, no side effects, no calling other services.
+  - Controllers Orchestrate: They glue services and repositories together.
+
+================================================================================
+7. CHANGE LOG
+================================================================================
+
+[2026-03-25] Volunteer ID Verification (Aadhaar)
+  WHAT: Added `aadharNumber` as a mandatory, unique identifier for Volunteers.
+  WHY:  Provides a government-recognized unique identification for volunteer 
+        validation in the Indian context.
+  
+  Key Features:
+    - Model: Added `aadharNumber` to `Volunteer` schema.
+    - Frontend: Updated `VolunteerRegister` form with Aadhaar input.
+    - Controller: Enhanced validation to prevent duplicate Aadhaar registrations.
+
+[2026-03-25] Initial Cleanup
+  WHAT: Removed all placeholder/mock files and dead references.
+  WHY:  The project had demo pages (User.jsx, Profile.jsx) and placeholder
+        routes that pointed to non-existent backend files. These were mock
+        artifacts from the boilerplate and needed to be cleared before real
+        development begins.
+
+  Files Deleted:
+    - frontend/src/User.jsx          (placeholder demo page)
+    - frontend/src/Profile.jsx       (placeholder demo page)
+
+  Files Modified:
+    - frontend/src/App.jsx           Removed User/Profile imports and routes
+    - frontend/src/pages/Home.jsx    Removed unused Button/navigate imports
+    - frontend/src/services/apiService.js  Removed placeholder API functions
+    - backend/app.js                 Removed dead route imports (userRoutes,
+                                     profileRoutes)
+    - backend/server.js              Removed dead endpoint logs
+    - backend/utils/responseWrapper.js  Converted CommonJS → ESM for consistency
+
+[2026-03-25] Initialization Helpers & API Environment
+  WHAT: Refactored maintenance scripts and added environmental awareness
+        to the frontend API client.
+  WHY:  Prevents root directory clutter and ensures the frontend can
+        automatically target the correct API port/host.
+  
+  Key Features:
+    - Folders: Created `backend/initialiser_helpers/`
+    - Env: Created `frontend/.env` with `VITE_API_BASE_URL`
+    - Client: `apiClient.js` now reads from `import.meta.env`
+    - Tasks: Moved `seed_admin.js` and `test_auth.js` to helpers/
+
+[2026-03-25] Removed Custom Cursor Component
+  WHAT: Removed the cyberpunk "GH" trailing cursor and restored the default
+        browser cursor.
+  WHY:  The custom cursor overrode the OS cursor with a CSS-rendered arrow
+        and a trailing animated "GH" label — a boilerplate novelty effect that
+        hinders usability for a real application.
+
+  Files Deleted:
+    - frontend/src/components/Cursor/Cursor.jsx
+    - frontend/src/components/Cursor/Cursor.module.css
+
+  Files Modified:
+    - frontend/src/App.jsx             Removed Cursor import and <Cursor /> usage
+    - frontend/src/index.css           Removed cursor:none from body and a/button
+
+[2026-03-25] Volunteer Auth & Unified Flow Implementation
+  WHAT: Implemented Volunteer models, repositories, and controllers. Built 
+        Volunteer registration/login pages and a unified `AuthChoice` portal.
+  WHY:  Expands the ecosystem to individual volunteers. Simplifies the 
+        navigation bar by providing a single entry point for all users.
+  
+  Key Features:
+    - Backend: `volunteerModel.js` (Includes Aadhaar), `volunteerRepository.js`, `volunteerController.js`
+    - Pages: `VolunteerRegister.jsx` (Includes Aadhaar field), `VolunteerLogin.jsx`, `AuthChoice.jsx`
+    - Unified Nav: Navbar updated with "Login" and "Register" buttons.
+    - Routes: Registered `/volunteer/*` and `/choice` routes.
+
+[2026-03-25] NGO Frontend Auth Implementation
+  WHAT: Implemented the full backend stack for NGO registration/login and a 
+        centralized Admin Panel.
+  WHY:  Core infrastructure for trust-based crisis coordination. Allows NGOs 
+        to sign up and Admins to verify them via a dedicated dashboard.
+  
+  Key Features:
+    - Repository Layer: `ngoRepository.js`, `adminRepository.js`
+    - Service Layer: `authService.js` (Bcrypt + JWT)
+    - Middleware: `authMiddleware.js` (Role-based JWT verification)
+    - Controllers: `ngoController.js`, `adminController.js`
+    - Routes: `/ngo/*` and `/admin/api/*`
+    - UI: Premium Vanilla HTML/JS Admin Panel at `/admin`
+    - DB: Automated MongoDB connection on server start
+
+[2026-03-25] Core Idea Document Created
+  WHAT: Created coreidea.txt with the full system vision.
+  WHY:  Reference document capturing all 15 pillars of the H2S platform
+        (roles, trust, validation, coordination, teams, resources, tracking,
+        comms, resilience, governance, fraud detection, incentives, engagement,
+        design philosophy, and system identity).
+
+  Files Created:
+    - coreidea.txt
+
+================================================================================

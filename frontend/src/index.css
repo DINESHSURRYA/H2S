@@ -20,12 +20,6 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   overflow-x: hidden;
-  cursor: none; /* Hide default OS cursor for clean SPA experience */
-}
-
-/* Ensure clickable elements still look interactive even without default pointer */
-a, button {
-  cursor: none !important;
 }
 
 #root {

@@ -1,0 +1,99 @@
+================================================================================
+  H2S FRONTEND — AGENT INSTRUCTIONS
+  These rules MUST be followed in every iteration without exception.
+  Last Updated: 2026-03-25
+================================================================================
+
+PURPOSE
+-------
+This file defines the architectural constraints and coding rules for the H2S
+frontend. The AI agent must read and follow these instructions at the start of
+every development iteration to maintain project integrity.
+
+================================================================================
+ARCHITECTURE RULES
+================================================================================
+
+1. COMPONENT LAYER
+   -----------------
+   - Each component lives in its own folder under src/components/.
+   - Each folder contains the component .jsx file and its .module.css file.
+   - Components should be reusable and focused on a single responsibility.
+   - Components must NOT make API calls directly — use hooks or page-level logic.
+
+2. PAGES LAYER
+   -------------
+   - Pages live under src/pages/.
+   - A page represents a full view/route in the SPA.
+   - Pages orchestrate components, call hooks for data, and handle layout.
+   - Pages are registered in App.jsx using React Router <Route> elements.
+
+3. SERVICES LAYER
+   ----------------
+   - src/services/apiClient.js → Low-level fetch wrapper (handles HTTP, errors,
+     JSON parsing). This is the ONLY file that touches the network directly.
+   - src/services/apiService.js → High-level functions that map to backend
+     endpoints. Components/pages use these, not apiClient directly.
+   - Each new backend endpoint should get a corresponding function in apiService.js.
+
+4. HOOKS LAYER
+   -------------
+   - Custom React hooks live under src/hooks/.
+   - useFetch.js provides centralized data fetching with loading/error/refetch.
+   - New hooks should be created for reusable stateful logic.
+
+5. ROUTING
+   --------
+   - All routes are defined in App.jsx using react-router-dom.
+   - When a new page is created, it must be imported and registered there.
+
+================================================================================
+STYLING RULES
+================================================================================
+
+1. CSS MODULES ONLY:   Every component uses ComponentName.module.css.
+                        Import as: import styles from './Component.module.css';
+                        Use as:    className={styles.someClass}
+2. NO INLINE STYLES:   Zero inline CSS in JSX. All styles go in .module.css files.
+3. GLOBAL CSS:         Only index.css contains global resets and root variables.
+4. NAMING:             CSS class names in camelCase within modules.
+
+================================================================================
+CODING STANDARDS
+================================================================================
+
+1. MODULE SYSTEM:      ESM (import/export). No CommonJS.
+2. COMPONENTS:         Functional components with React Hooks only. No class components.
+3. FILE NAMING:
+   - Components:       PascalCase (e.g., Button.jsx, Navbar.jsx)
+   - Pages:            PascalCase (e.g., Home.jsx, Dashboard.jsx)
+   - Hooks:            camelCase with 'use' prefix (e.g., useFetch.js)
+   - Services:         camelCase (e.g., apiService.js, apiClient.js)
+   - CSS Modules:      Match component name (e.g., Button.module.css)
+4. PROPS:              Destructure in function signature for clarity.
+5. STATE:              Use useState for local state, useContext for shared state.
+
+================================================================================
+DEVELOPMENT WORKFLOW (PER FEATURE)
+================================================================================
+
+When building a new frontend feature, follow this order:
+
+  1. apiService   → Add the API function for the new endpoint.
+  2. Component    → Build the UI component with its .module.css.
+  3. Page         → Create or update the page that uses the component.
+  4. Route        → Register the page route in App.jsx.
+  5. Verify       → Test the full flow from UI interaction to API response.
+
+================================================================================
+INTEGRITY CHECKS (BEFORE EVERY COMMIT)
+================================================================================
+
+  [ ] No component makes direct fetch/axios calls (use services layer).
+  [ ] All styles are in .module.css files — zero inline styles.
+  [ ] New pages are registered as routes in App.jsx.
+  [ ] New API endpoints have corresponding functions in apiService.js.
+  [ ] All imports use ESM syntax.
+  [ ] documentation.txt change log has been updated.
+
+================================================================================

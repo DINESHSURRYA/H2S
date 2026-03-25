@@ -1,0 +1,289 @@
+================================================================================
+  H2S — SMART CRISIS MANAGEMENT SYSTEM
+  CORE IDEA & SYSTEM VISION
+  Drafted: 2026-03-25
+================================================================================
+
+WHAT IS H2S?
+------------
+A centralized web-based crisis coordination platform that connects
+Admins, NGOs, Volunteers, and the Public during emergencies (natural
+disasters, large-scale resource shortages, etc.).
+
+CORE OBJECTIVE:
+  Transform scattered, unreliable, delayed crisis information into a
+  structured, trusted, and actionable workflow — so the right resources
+  and people reach the right place at the right time, with accountability
+  and long-term sustainability for all participating organizations.
+
+================================================================================
+1. ROLES & HIERARCHY
+================================================================================
+
+  ADMIN (Platform Authority)
+    - Verifies NGOs
+    - Resolves disputes and handles complaints
+    - Maintains overall system integrity
+
+  NGO (Operational Units)
+    - Onboarded and verified by Admin
+    - Manages volunteers
+    - Oversees task execution
+    - Validates critical actions
+    - Coordinates resources
+
+  VOLUNTEER (Ground-Level Workforce)
+    - Verified by NGOs
+    - Collects real-time field data
+    - Validates public requests
+    - Executes assigned tasks
+
+  PUBLIC USER (Community Input)
+    - Submits requests and reports needs
+    - Initially lower trust — inputs need verification
+    - Trust upgrades when verified by volunteer/NGO/admin
+
+================================================================================
+2. TRUST-BASED ARCHITECTURE
+================================================================================
+
+  Not all data is equal. Trust is the foundation of the system.
+
+  TRUST LEVELS:
+    - HIGH TRUST:  Verified volunteers, trusted NGOs
+    - LOW TRUST:   Public users (until verified)
+    - UPGRADEABLE: Public requests can be upgraded when validated by a
+                   nearby volunteer, or by an NGO/Admin if no volunteer
+                   is available
+
+  DYNAMIC TRUST SCORE:
+    Maintained for each entity (volunteers, NGOs) based on:
+    - Historical performance
+    - Accuracy of validations
+    - Task completion rates
+    - Complaints and misuse history
+
+    PURPOSE:
+    - Reliable actors → reduced manual oversight, less friction
+    - Less trusted actors → stricter checks, more validation steps
+
+================================================================================
+3. DATA COLLECTION & MULTI-LAYER VALIDATION
+================================================================================
+
+  DATA SOURCES:
+    - Volunteers:  Primary, most reliable ground-level source
+    - Public:      Expands coverage, initially low trust
+    - NGOs:        Operational data contributions
+
+  VALIDATION PIPELINE (every incoming request goes through):
+    1. Volunteer validation (field confirmation)
+    2. NGO/Admin approval (when required)
+    3. System-level checks:
+       - Duplicate detection
+       - Consistency verification
+       - Location matching
+
+  RESULT: System stays open to inputs while blocking misinformation/noise.
+
+================================================================================
+4. COORDINATION ENGINE
+================================================================================
+
+  CATEGORIZATION:
+    Requests categorized by need type:
+    - Food, Medical assistance, Rescue operations, Shelter, etc.
+
+  PRIORITIZATION:
+    Factors considered:
+    - Severity of the situation
+    - Number of affected individuals
+    - Time sensitivity
+
+  GEO-INTELLIGENCE:
+    - Map requests to locations
+    - Identify clusters of needs → detect hotspots
+    - Segment regions into zones to reduce overlap in efforts
+
+  INTELLIGENT MATCHING:
+    Match volunteers to tasks based on:
+    - Skills
+    - Availability
+    - Proximity
+
+================================================================================
+5. TEAM-BASED TASK ALLOCATION
+================================================================================
+
+  Tasks are NOT just assigned to individuals — teams are supported.
+
+  DYNAMIC TEAMS:
+    - Formed from multiple volunteers with complementary skills
+    - Example: driver + medical professional + support staff
+
+  TASK LIFECYCLE:
+    Creation → Validation → Assignment → Acceptance → Execution →
+    Completion → Final Verification
+
+================================================================================
+6. RESOURCE TRACKING
+================================================================================
+
+  The platform manages people AND physical resources.
+
+  TRACKED RESOURCES:
+    - Food supplies, Medicines, Vehicles, Equipment, etc.
+
+  CAPABILITIES:
+    - NGOs maintain inventories of their resources
+    - System tracks allocation to tasks
+    - Tracks transfers between entities
+    - Tracks consumption over time
+
+  PURPOSE: Efficient distribution — preventing both shortages and
+           over-allocation in specific areas.
+
+================================================================================
+7. ETA SERVICE & REAL-TIME TRACKING
+================================================================================
+
+  - Volunteers/teams share location updates during tasks
+  - System estimates arrival times (ETA)
+  - Location pings + optional route tracking
+  - Better coordination for NGOs
+  - Sets expectations for affected communities
+
+================================================================================
+8. IN-APP COMMUNICATION
+================================================================================
+
+  Integrated communication layer eliminates external tool dependency.
+
+  FEATURES:
+    - Direct messaging (NGO ↔ Volunteer)
+    - Team-level communication
+    - Broadcast alerts for urgent needs
+    - Notifications for:
+      * Task assignments
+      * Approvals
+      * Escalations
+
+================================================================================
+9. RESILIENCE IN CRISIS CONDITIONS
+================================================================================
+
+  OFFLINE-FIRST:
+    - Data collected and stored locally
+    - Synchronized when connectivity is restored
+
+  ALTERNATIVE INPUTS:
+    - SMS-based reporting for low-network scenarios
+
+  ESCALATION MECHANISMS:
+    - Tasks/requests not addressed within a timeframe are automatically
+      escalated to higher authorities (NGOs → Admins)
+
+================================================================================
+10. ACCOUNTABILITY & GOVERNANCE
+================================================================================
+
+  COMPLAINT SYSTEM:
+    - Users can report NGOs, volunteers, or other users
+    - Grounds: misbehavior, resource misuse, false reporting
+
+  AUDIT TRAIL:
+    Every action is recorded:
+    - Who reported the data
+    - Who validated it
+    - Who executed the corresponding task
+    → Full transparency and traceability
+
+================================================================================
+11. FRAUD & MISUSE DETECTION
+================================================================================
+
+  DETECTION MECHANISMS:
+    - Duplicate requests
+    - Inflated claims
+    - Fake task completions
+    - Abnormal behavior patterns
+
+  RESPONSE:
+    - Flag involved entities
+    - Reduce trust scores
+    - Restrict access
+    - Escalate to administrators
+
+================================================================================
+12. VERIFIED IMPACT & INCENTIVE SYSTEM (CENTRAL INNOVATION)
+================================================================================
+
+  NGO WORK LOGGING:
+    - NGOs log work + expenses linked to specific tasks
+
+  MULTI-LAYER VERIFICATION:
+    1. Beneficiary confirmation
+    2. Volunteer validation
+    3. System consistency checks
+    → Once verified → marked as "VERIFIED IMPACT"
+
+  CREDIT-BASED MODEL:
+    - NGOs earn credits proportional to verified contributions
+    - Credits used to access grants, resources, platform benefits
+    - Reduces financial risk while providing meaningful incentives
+    - FUTURE: Integration with donors/government channels for direct
+      funding based on verified impact
+
+================================================================================
+13. MOTIVATION & ENGAGEMENT
+================================================================================
+
+  VOLUNTEERS:
+    - Achievements, badges, public acknowledgment
+
+  NGOs:
+    - Impact dashboards showcasing their work
+    - High performers get reduced friction + priority resource access
+
+  COMMUNITY:
+    - Events and engagement programs facilitated through the platform
+
+================================================================================
+14. DESIGN PHILOSOPHY
+================================================================================
+
+  HYBRID APPROACH: Automation + Human Oversight
+
+  AUTOMATED:
+    - Prioritization
+    - Task matching
+    - Basic validation
+
+  HUMAN-CONTROLLED:
+    - Trust decisions
+    - Conflict resolution
+    - Critical approvals
+
+  PROGRESSIVE TRUST:
+    As trust scores improve → system reduces friction for reliable
+    participants → scalable and efficient operations
+
+================================================================================
+15. SYSTEM IDENTITY
+================================================================================
+
+  H2S is NOT just a task management system.
+
+  It is a comprehensive coordination ecosystem integrating:
+    ✓ Trust
+    ✓ Validation
+    ✓ Resource management
+    ✓ Communication
+    ✓ Accountability
+    ✓ Incentives
+
+  OUTCOME: Faster, more reliable crisis response where NGOs and
+  volunteers are supported, recognized, and sustained through
+  verified impact.
+
+================================================================================

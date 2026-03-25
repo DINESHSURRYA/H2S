@@ -7,13 +7,14 @@ import styles from './Button.module.css';
  * @param {function} onClick - Click handler.
  * @returns {JSX.Element} - Styled interactive button.
  */
-const Button = ({ children, onClick, type = "button" }) => {
+const Button = ({ children, onClick, type = "button", disabled = false }) => {
   // Use CSS module class instead of inline styles
   return (
     <button 
       className={styles.button} 
       type={type} 
       onClick={onClick}
+      disabled={disabled}
     >
       {children}
     </button>

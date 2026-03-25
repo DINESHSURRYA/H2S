@@ -1,17 +1,35 @@
 import { apiClient } from "./apiClient.js";
 
 /**
- * Mid-level API Service to abstract logic away from components.
+ * API Service Layer.
+ * All API calls should be defined here using the apiClient.
+ * Each function abstracts a single backend endpoint.
  */
 
-// Fetch the user's profile information
-export const getProfile = async () => {
-  // Calls low-level apiClient for the /profile endpoint
-  return await apiClient("/profile");
+export const registerNgo = (data) => {
+  return apiClient('/ngo/register', {
+    method: 'POST',
+    data,
+  });
 };
 
-// Fetch general user information
-export const getUser = async () => {
-  // Calls low-level apiClient for the /user endpoint
-  return await apiClient("/user");
+export const loginNgo = (data) => {
+  return apiClient('/ngo/login', {
+    method: 'POST',
+    data,
+  });
+};
+
+export const registerVolunteer = (data) => {
+  return apiClient('/volunteer/register', {
+    method: 'POST',
+    data,
+  });
+};
+
+export const loginVolunteer = (data) => {
+  return apiClient('/volunteer/login', {
+    method: 'POST',
+    data,
+  });
 };
