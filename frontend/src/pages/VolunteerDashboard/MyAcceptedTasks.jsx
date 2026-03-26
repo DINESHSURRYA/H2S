@@ -4,9 +4,8 @@ import styles from './VolunteerDashboard.module.css';
 const MyAcceptedTasks = ({ requests, volunteerData }) => {
   return (
     <div className={styles.bentoItem} style={{ gridColumn: 'span 12' }}>
-      <h2 className={styles.cardTitle}>Active Missions // Operational</h2>
       {requests.length === 0 ? (
-        <p className={styles.placeholderText}>No active sorties assigned to this unit.</p>
+        <p className={styles.placeholderText}>Not approved any requests yet...</p>
       ) : (
         <div className={styles.requestList}>
           {requests.map((req) => (

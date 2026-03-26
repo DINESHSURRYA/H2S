@@ -5,9 +5,8 @@ import Button from '../../components/Button/Button';
 const AvailableRequests = ({ requests, onApprove, onHype, loadingAction }) => {
   return (
     <div className={styles.bentoItem} style={{ gridColumn: 'span 12' }}>
-      <h2 className={styles.cardTitle}>Intake Stream // Field Reports</h2>
       {requests.length === 0 ? (
-        <p className={styles.placeholderText}>No active missions in this frequency sector.</p>
+        <p className={styles.placeholderText}>No Requests available</p>
       ) : (
         <div className={styles.requestList}>
           {requests.map((req) => (

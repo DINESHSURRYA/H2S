@@ -18,12 +18,12 @@ const VolunteerDashboard = () => {
   useEffect(() => {
     const data = localStorage.getItem('volunteerData');
     const token = localStorage.getItem('volunteerToken');
-    
+
     if (!token || !data) {
       navigate('/volunteer/login');
       return;
     }
-    
+
     try {
       const parsedData = JSON.parse(data);
       setVolunteerData(parsedData);
@@ -52,7 +52,7 @@ const VolunteerDashboard = () => {
     setLoadingAction(true);
     try {
       await approveHelpRequest(requestId, volunteerData.id);
-      await fetchRequests(volunteerData.id); 
+      await fetchRequests(volunteerData.id);
     } catch (err) {
       alert('Failed to approve request.');
     } finally {
@@ -63,10 +63,10 @@ const VolunteerDashboard = () => {
   const handleHype = async (requestId) => {
     if (!volunteerData) return;
     try {
-        await voteHype(requestId, volunteerData.id, 1);
-        await fetchRequests(volunteerData.id);
+      await voteHype(requestId, volunteerData.id, 1);
+      await fetchRequests(volunteerData.id);
     } catch (err) {
-        alert('Failed to add hype.');
+      alert('Failed to add hype.');
     }
   }
 
@@ -82,53 +82,49 @@ const VolunteerDashboard = () => {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.welcomeInfo}>
-          <h1 className={styles.title} style={{ letterSpacing: '-2px', fontWeight: '900' }}>AGENT INTERFACE // v2.0</h1>
-          <p className={styles.subtitle}>UNIT: {volunteerData.name.toUpperCase()} // AUTHENTICATED SESSION</p>
-        </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-            <Button onClick={() => navigate('/volunteer/request-help')} style={{ background: 'var(--accent-color)' }}>+ RAISE FIELD REPORT</Button>
-            <Button onClick={handleLogout} style={{ background: 'rgba(255,255,255,0.05)', color: 'white' }}>TERMINATE SESSION</Button>
+          <h1 className={styles.title} style={{ letterSpacing: '-2px', fontWeight: '900' }}>VOLUNTEER INTERFACE</h1>
+          <p className={styles.subtitle}>NAME: {volunteerData.name.toUpperCase()}</p>
         </div>
       </header>
 
+      <br></br>
       <div className={styles.bentoGrid}>
-        <VolunteerOverview 
-            volunteerData={volunteerData} 
-            myRequestsCount={myRequests.length}
-            raisedRequestsCount={0} // No longer tracked via raisedBy
+        <VolunteerOverview
+          volunteerData={volunteerData}
+          myRequestsCount={myRequests.length}
+          raisedRequestsCount={0} // No longer tracked via raisedBy
         />
-
+        <br></br>
         <div className={styles.bentoItem} style={{ gridColumn: 'span 12', padding: 0, background: 'none', border: 'none', boxShadow: 'none' }}>
-           <div className={styles.tabs} style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                <button 
-                    className={`${styles.tab} ${activeTab === 'available' ? styles.activeTab : ''}`}
-                    onClick={() => setActiveTab('available')}
-                    style={{ background: activeTab === 'available' ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)', border: 'none', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
-                >
-                    AVAILABLE MISSIONS
-                </button>
-                <button 
-                    className={`${styles.tab} ${activeTab === 'tasks' ? styles.activeTab : ''}`}
-                    onClick={() => setActiveTab('tasks')}
-                    style={{ background: activeTab === 'tasks' ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)', border: 'none', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
-                >
-                    MY ACTIVE SORTIES ({myRequests.length})
-                </button>
-           </div>
-
-            {activeTab === 'available' ? (
-                <AvailableRequests 
-                    requests={pendingRequests} 
-                    onApprove={handleApprove} 
-                    onHype={handleHype}
-                    loadingAction={loadingAction} 
-                />
-            ) : (
-                <MyAcceptedTasks 
-                    requests={myRequests} 
-                    volunteerData={volunteerData} 
-                />
-            )}
+          <div className={styles.tabs} style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+            <button
+              className={`${styles.tab} ${activeTab === 'available' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('available')}
+              style={{ background: activeTab === 'available' ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)', border: 'none', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              Requests
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === 'tasks' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('tasks')}
+              style={{ background: activeTab === 'tasks' ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)', border: 'none', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              Approved Requests ({myRequests.length})
+            </button>
+          </div>
+          {activeTab === 'available' ? (
+            <AvailableRequests
+              requests={pendingRequests}
+              onApprove={handleApprove}
+              onHype={handleHype}
+              loadingAction={loadingAction}
+            />
+          ) : (
+            <MyAcceptedTasks
+              requests={myRequests}
+              volunteerData={volunteerData}
+            />
+          )}
         </div>
       </div>
     </div>

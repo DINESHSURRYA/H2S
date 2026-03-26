@@ -26,8 +26,16 @@ const VolunteerRequestHelp = () => {
   };
 
   const handleRequirementChange = (index, e) => {
+    const { name, value } = e.target;
     const updatedRequirements = [...requirements];
-    updatedRequirements[index][e.target.name] = e.target.value;
+
+    if (name === "quantity") {
+      updatedRequirements[index][name] =
+        value === "" ? "" : Math.max(1, Number(value));
+    } else {
+      updatedRequirements[index][name] = value;
+    }
+
     setRequirements(updatedRequirements);
   };
 
@@ -81,6 +89,7 @@ const VolunteerRequestHelp = () => {
     let volData;
     try {
       volData = JSON.parse(volDataStr);
+      // console.log("volunteer data : " , volData)
     } catch {
       setError('Invalid volunteer session.');
       return;
@@ -201,12 +210,14 @@ const VolunteerRequestHelp = () => {
                   required
                 />
                 
-                <InputField
+               <InputField
                   label="Units / Quantity"
                   name="quantity"
                   type="number"
+                  min={1}
                   value={item.quantity}
                   onChange={(e) => handleRequirementChange(index, e)}
+                  onWheel={(e) => e.target.blur()}   
                   placeholder="E.g., 2"
                   required
                 />

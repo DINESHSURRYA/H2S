@@ -1,20 +1,46 @@
 import helpRequestRepository from '../repository/helpRequestRepository.js';
 import publicUserRepository from '../repository/publicUserRepository.js';
+import volunteerRepository from '../repository/volunteerRepository.js';
 
 export const createRequest = async (req, res, next) => {
   try {
-    const { name, phone, email, location, crisisDescription, requirements, volunteerId } = req.body;
+    const {
+      name,
+      phone,
+      email,
+      crisisDescription,
+      location,
+      requirements,
+      volunteerId
+    } = req.body;
 
-    // Find or create public user
-    const publicUser = await publicUserRepository.findOrCreate({ name, phone, email });
+    let publicUser = null;
+    let validVolunteer = null;
+
+    // ✅ Check if volunteer exists
+    if (volunteerId) {
+      validVolunteer = await volunteerRepository.findVolunteerById(volunteerId);
+    }
+
+    // ✅ If no valid volunteer → fallback to public user
+    if (!validVolunteer) {
+      publicUser = await publicUserRepository.findOrCreate({
+        name,
+        phone,
+        email
+      });
+    }
 
     const requestData = {
-      publicUser: publicUser._id,
+      publicUser: publicUser ? publicUser._id : null,
       location,
       crisisDescription,
-      requirements,
-      status: volunteerId ? 'validated' : 'pending',
-      approvedBy: volunteerId || null
+      requirements: requirements.map(req => ({
+        ...req,
+        quantity: Math.max(1, Number(req.quantity) || 1) // 🔒 safe guard
+      })),
+      status: validVolunteer ? 'validated' : 'pending',
+      approvedBy: validVolunteer ? validVolunteer._id : null
     };
 
     const newRequest = await helpRequestRepository.createHelpRequest(requestData);
@@ -24,6 +50,7 @@ export const createRequest = async (req, res, next) => {
       requestId: newRequest._id,
       request: newRequest
     });
+
   } catch (error) {
     next(error);
   }

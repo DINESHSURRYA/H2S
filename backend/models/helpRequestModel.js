@@ -2,11 +2,19 @@ import mongoose from 'mongoose';
 
 const helpRequestSchema = new mongoose.Schema(
   {
+    // ✅ Source of request (either one)
     publicUser: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'PublicUser',
-      required: true,
+      default: null,
     },
+
+    volunteer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Volunteer',
+      default: null,
+    },
+
     location: {
       latitude: {
         type: Number,
@@ -17,15 +25,25 @@ const helpRequestSchema = new mongoose.Schema(
         required: true,
       },
     },
+
     crisisDescription: {
       type: String,
       required: true,
+      trim: true,
     },
+
     requirements: [
       {
-        itemName: { type: String, required: true },
-        quantity: { type: Number, required: true },
-        description: { type: String, required: true },
+        itemName: { type: String, required: true, trim: true },
+
+        quantity: {
+          type: Number,
+          required: true,
+          min: 1, // 🔒 prevents negative / zero
+        },
+
+        description: { type: String, required: true, trim: true },
+
         grantedList: [
           {
             type: mongoose.Schema.Types.ObjectId,
@@ -34,20 +52,25 @@ const helpRequestSchema = new mongoose.Schema(
         ],
       }
     ],
+
     status: {
       type: String,
       enum: ['pending', 'validated', 'in-progress', 'resolved'],
       default: 'pending',
     },
+
+    // ✅ Who validated it
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Volunteer',
       default: null,
     },
+
     isLocked: {
       type: Boolean,
       default: false,
     },
+
     lockedByNGO: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Ngo',
@@ -63,6 +86,7 @@ const helpRequestSchema = new mongoose.Schema(
         points: {
           type: Number,
           default: 0,
+          min: 0,
         }
       }
     ],
@@ -74,4 +98,3 @@ const helpRequestSchema = new mongoose.Schema(
 const HelpRequest = mongoose.model('HelpRequest', helpRequestSchema);
 
 export default HelpRequest;
-
