@@ -55,14 +55,14 @@ const NgoDashboard = () => {
                     onClick={() => setFilterMode('verified')}
                     style={{ background: filterMode === 'verified' ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)', border: 'none', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                 >
-                    VALIDATED MISSIONS
+                    AVAILABLE REQUESTS
                 </button>
                 <button 
                     className={`${styles.tab} ${filterMode === 'field' ? styles.activeTab : ''}`}
                     onClick={() => setFilterMode('field')}
                     style={{ background: filterMode === 'field' ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)', border: 'none', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                 >
-                    FIELD REPORTS (PENDING)
+                    HELPED REQUESTS (PENDING)
                 </button>
            </div>
 

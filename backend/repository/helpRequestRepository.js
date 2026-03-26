@@ -10,15 +10,20 @@ class HelpRequestRepository {
     return await HelpRequest.findById(id)
       .populate('publicUser')
       .populate('approvedBy')
-      .populate('hype.volunteer')
       .populate({
-          path: 'requirements.grantedList',
-          populate: { path: 'ngoId' }
+        path: 'requirements.grantedList',
+        populate: {
+          path: 'ngoId',
+          select: 'name'
+        }
       });
   }
 
   async getAllPendingRequests() {
-    return await HelpRequest.find({ status: { $in: ['pending', 'validated', 'in-progress'] } })
+    return await HelpRequest.find({
+      approvedBy: null,              // ✅ not approved by anyone
+      status: 'pending'              // ✅ still pending (optional but recommended)
+    })
       .populate('publicUser')
       .populate('approvedBy')
       .sort({ createdAt: -1 });
@@ -61,6 +66,32 @@ class HelpRequestRepository {
     return await HelpRequest.find()
       .populate('publicUser')
       .populate('approvedBy')
+      .sort({ createdAt: -1 });
+  }
+
+  // helpRequestRepository.js
+
+  async getApprovedRequests() {
+    return await HelpRequest.find({
+      approvedBy: { $ne: null }
+    })
+      .populate('publicUser')
+      .populate('approvedBy')
+      .populate({
+        path: 'requirements.grantedList',
+        populate: {
+          path: 'ngoId',
+          select: 'name'
+        }
+      })
+      .sort({ createdAt: -1 });
+  }
+
+  async getUnapprovedRequests() {
+    return await HelpRequest.find({
+      approvedBy: null            // ✅ only NOT approved
+    })
+      .populate('publicUser')
       .sort({ createdAt: -1 });
   }
 }

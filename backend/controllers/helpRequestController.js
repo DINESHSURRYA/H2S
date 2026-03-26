@@ -2,6 +2,7 @@ import helpRequestRepository from '../repository/helpRequestRepository.js';
 import publicUserRepository from '../repository/publicUserRepository.js';
 import volunteerRepository from '../repository/volunteerRepository.js';
 
+
 export const createRequest = async (req, res, next) => {
   try {
     const {
@@ -108,5 +109,23 @@ export const voteHype = async (req, res, next) => {
         next(error);
     }
 }
+
+export const getApprovedRequests = async (req, res, next) => {
+  try {
+    const requests = await helpRequestRepository.getApprovedRequests();
+    res.status(200).json(requests);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUnapprovedRequests = async (req, res, next) => {
+  try {
+    const requests = await helpRequestRepository.getUnapprovedRequests();
+    res.status(200).json(requests);
+  } catch (error) {
+    next(error);
+  }
+};
 
 

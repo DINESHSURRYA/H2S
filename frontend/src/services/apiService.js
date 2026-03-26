@@ -45,6 +45,15 @@ export const getPendingRequests = () => {
   return apiClient('/help-request/pending');
 };
 
+// USED IN NGO
+export const getUnapprovedRequests = () => {
+  return apiClient('/help-request/unapproved');
+};
+
+export const getApprovedRequests = () => {
+  return apiClient('/help-request/approved');
+};
+
 export const getMissions = getPendingRequests;
 
 

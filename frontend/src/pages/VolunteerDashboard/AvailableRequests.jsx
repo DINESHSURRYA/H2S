@@ -53,7 +53,7 @@ const AvailableRequests = ({ requests, onApprove, onHype, loadingAction }) => {
                   disabled={loadingAction}
                   style={{ background: 'var(--accent-color)', color: 'white', fontWeight: '800', border: 'none', borderRadius: '8px', padding: '0.5rem 1rem' }}
                 >
-                  {loadingAction ? '...' : 'VALIDATE & ACCEPT'}
+                  {loadingAction ? '...' : 'VALIDATE & APPROVE'}
                 </Button>
               </div>
             </div>

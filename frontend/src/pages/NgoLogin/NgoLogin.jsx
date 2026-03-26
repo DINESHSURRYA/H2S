@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginNgo } from '../../services/apiService';
-import InputField from '../../components/InputField/InputField';
-import Button from '../../components/Button/Button';
 import styles from './NgoLogin.module.css';
 
 const NgoLogin = () => {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
+    password: ''
   });
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -25,11 +28,25 @@ const NgoLogin = () => {
 
     try {
       const response = await loginNgo(formData);
+
+      // 🔥 Normalize NGO
+      const ngo = response.ngo;
+      const normalizedNgo = {
+        ...ngo,
+        _id: ngo._id || ngo.id
+      };
+
       localStorage.setItem('ngoToken', response.token);
-      localStorage.setItem('ngoData', JSON.stringify(response.ngo));
+      localStorage.setItem('ngoData', JSON.stringify(normalizedNgo));
+
       navigate('/ngo/dashboard');
+
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(
+        err?.response?.data?.message ||
+        err.message ||
+        'Login failed'
+      );
     } finally {
       setLoading(false);
     }
@@ -38,39 +55,40 @@ const NgoLogin = () => {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+
         <h1 className={styles.title}>NGO Login</h1>
-        <p className={styles.subtitle}>Enter your credentials to access the dashboard.</p>
-        
-        {error && <div className={styles.errorBanner}>{error}</div>}
-        
+        <p className={styles.subtitle}>Access your mission dashboard</p>
+
+        {error && <div className={styles.error}>{error}</div>}
+
         <form onSubmit={handleSubmit} className={styles.form}>
-          <InputField
-            label="Email Address"
+          <input
             type="email"
             name="email"
+            placeholder="Email"
             value={formData.email}
             onChange={handleChange}
-            placeholder="contact@ngo.org"
             required
           />
-          <InputField
-            label="Password"
+
+          <input
             type="password"
             name="password"
+            placeholder="Password"
             value={formData.password}
             onChange={handleChange}
-            placeholder="••••••••"
             required
           />
-          
-          <Button type="submit" disabled={loading}>
-            {loading ? 'Logging in...' : 'Sign In'}
-          </Button>
+
+          <button type="submit" disabled={loading}>
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
         </form>
-        
+
         <p className={styles.footer}>
-          Don't have an account? <Link to="/ngo/register">Register your NGO</Link>
+          New NGO? <Link to="/ngo/register">Register</Link>
         </p>
+
       </div>
     </div>
   );

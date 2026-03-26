@@ -217,7 +217,8 @@ const VolunteerRequestHelp = () => {
                   min={1}
                   value={item.quantity}
                   onChange={(e) => handleRequirementChange(index, e)}
-                  onWheel={(e) => e.target.blur()}   
+                  onWheel={(e) => e.target.blur()}                 // ❌ disable scroll
+                  onMouseDown={(e) => e.preventDefault()}           // ❌ disable spinner clicks
                   placeholder="E.g., 2"
                   required
                 />

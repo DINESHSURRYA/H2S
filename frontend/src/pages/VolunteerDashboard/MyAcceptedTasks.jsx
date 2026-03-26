@@ -27,7 +27,6 @@ const MyAcceptedTasks = ({ requests, volunteerData }) => {
               </div>
               <div className={styles.requestFooter} style={{ borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '1.5rem', paddingTop: '1rem' }}>
                 <span className={styles.timestamp}>ASSIGNMENT TIMESTAMP: {new Date(req.createdAt).toLocaleDateString()}</span>
-                <span className={styles.metaCoords} style={{ color: 'var(--emerald-luminous)' }}>DEPLOYED UNIT: {volunteerData?.name?.toUpperCase() || 'UNKNOWN'} ON-SITE</span>
               </div>
             </div>
           ))}

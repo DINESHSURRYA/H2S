@@ -5,7 +5,7 @@ const NgoOverview = ({ ngoData }) => {
   return (
     <>
       <div className={`${styles.bentoItem} ${styles.verifiedLayer}`} style={{ gridColumn: 'span 4' }}>
-        <h2 className={styles.cardTitle}>Unit Profile // Authorized</h2>
+        <h2 className={styles.cardTitle}>Profile</h2>
         <div className={styles.dataRow}>
           <span className={styles.label}>HQ-MAIL:</span>
           <span className={styles.value}>{ngoData.email}</span>
