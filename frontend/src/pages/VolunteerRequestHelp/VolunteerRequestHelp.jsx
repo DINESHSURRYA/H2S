@@ -101,7 +101,9 @@ const VolunteerRequestHelp = () => {
             ...req,
             quantity: Number(req.quantity) || 0
         })),
+        volunteerId: volData.id
       };
+
       
       const response = await createHelpRequest(payload);
       setSuccessId(response.requestId);

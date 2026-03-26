@@ -73,3 +73,11 @@ export const voteHype = (id, volunteerId, points) => {
     });
 }
 
+export const toggleLock = (id, isLocked, ngoId) => {
+    return apiClient(`/help-request/${id}/lock`, {
+        method: 'POST',
+        data: { isLocked, ngoId }
+    });
+}
+
+
