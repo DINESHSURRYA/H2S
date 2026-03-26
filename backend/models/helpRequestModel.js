@@ -36,7 +36,7 @@ const helpRequestSchema = new mongoose.Schema(
     ],
     status: {
       type: String,
-      enum: ['pending', 'in-progress', 'resolved'],
+      enum: ['pending', 'validated', 'in-progress', 'resolved'],
       default: 'pending',
     },
     approvedBy: {
@@ -44,6 +44,16 @@ const helpRequestSchema = new mongoose.Schema(
       ref: 'Volunteer',
       default: null,
     },
+    isLocked: {
+      type: Boolean,
+      default: false,
+    },
+    lockedByNGO: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Ngo',
+      default: null,
+    },
+
     hype: [
       {
         volunteer: {
@@ -56,6 +66,7 @@ const helpRequestSchema = new mongoose.Schema(
         }
       }
     ],
+
   },
   { timestamps: true }
 );

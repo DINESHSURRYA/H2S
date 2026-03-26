@@ -8,6 +8,8 @@ router.get('/pending', helpRequestController.getPendingRequests);
 router.get('/volunteer/:volunteerId', helpRequestController.getVolunteerRequests);
 router.put('/:id/approve', helpRequestController.approveRequest);
 router.post('/:id/hype', helpRequestController.voteHype);
+router.post('/:id/lock', helpRequestController.toggleLock);
 
 export default router;
+
 

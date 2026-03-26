@@ -18,8 +18,9 @@ class HelpRequestRepository {
   }
 
   async getAllPendingRequests() {
-    return await HelpRequest.find({ status: 'pending' })
+    return await HelpRequest.find({ status: { $in: ['pending', 'validated', 'in-progress'] } })
       .populate('publicUser')
+      .populate('approvedBy')
       .sort({ createdAt: -1 });
   }
 
@@ -30,11 +31,21 @@ class HelpRequestRepository {
   }
 
   async updateHelpRequestStatus(id, status, volunteerId) {
+    const update = { status };
+    if (volunteerId) update.approvedBy = volunteerId;
     return await HelpRequest.findByIdAndUpdate(
       id,
-      { status, approvedBy: volunteerId },
+      update,
       { new: true }
     ).populate('approvedBy');
+  }
+
+  async toggleLock(id, isLocked, ngoId) {
+    return await HelpRequest.findByIdAndUpdate(
+        id,
+        { isLocked, lockedByNGO: isLocked ? ngoId : null },
+        { new: true }
+    );
   }
 
   async voteHype(requestId, volunteerId, points) {
@@ -44,6 +55,7 @@ class HelpRequestRepository {
           { new: true }
       ).populate('hype.volunteer');
   }
+
 
   async getAllHelpRequests() {
     return await HelpRequest.find()

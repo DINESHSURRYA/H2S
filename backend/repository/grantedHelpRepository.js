@@ -6,12 +6,19 @@ class GrantedHelpRepository {
     const grantedHelp = new GrantedHelp(data);
     const savedHelp = await grantedHelp.save();
 
-    // Update the HelpRequest to include this in the grantedList of the specific requirement
-    await HelpRequest.findOneAndUpdate(
-      { _id: data.helpRequestId, 'requirements._id': data.requirementId },
-      { $push: { 'requirements.$.grantedList': savedHelp._id } },
-      { new: true }
+    // Update the HelpRequest to include this in the grantedList and set status to in-progress
+    await HelpRequest.findByIdAndUpdate(
+      data.helpRequestId,
+      { 
+        $push: { 'requirements.$[elem].grantedList': savedHelp._id },
+        $set: { status: 'in-progress' }
+      },
+      { 
+        arrayFilters: [{ 'elem._id': data.requirementId }],
+        new: true 
+      }
     );
+
 
     return savedHelp;
   }

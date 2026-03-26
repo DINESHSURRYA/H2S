@@ -3,7 +3,7 @@ import publicUserRepository from '../repository/publicUserRepository.js';
 
 export const createRequest = async (req, res, next) => {
   try {
-    const { name, phone, email, location, crisisDescription, requirements } = req.body;
+    const { name, phone, email, location, crisisDescription, requirements, volunteerId } = req.body;
 
     // Find or create public user
     const publicUser = await publicUserRepository.findOrCreate({ name, phone, email });
@@ -13,7 +13,8 @@ export const createRequest = async (req, res, next) => {
       location,
       crisisDescription,
       requirements,
-      status: 'pending'
+      status: volunteerId ? 'validated' : 'pending',
+      approvedBy: volunteerId || null
     };
 
     const newRequest = await helpRequestRepository.createHelpRequest(requestData);
@@ -27,6 +28,7 @@ export const createRequest = async (req, res, next) => {
     next(error);
   }
 };
+
 
 export const getPendingRequests = async (req, res, next) => {
   try {
@@ -51,8 +53,19 @@ export const approveRequest = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { volunteerId } = req.body;
-    const updatedRequest = await helpRequestRepository.updateHelpRequestStatus(id, 'in-progress', volunteerId);
-    res.status(200).json({ message: 'Request approved successfully', request: updatedRequest });
+    const updatedRequest = await helpRequestRepository.updateHelpRequestStatus(id, 'validated', volunteerId);
+    res.status(200).json({ message: 'Request validated successfully', request: updatedRequest });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const toggleLock = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { isLocked, ngoId } = req.body;
+    const updatedRequest = await helpRequestRepository.toggleLock(id, isLocked, ngoId);
+    res.status(200).json({ message: isLocked ? 'Request locked' : 'Request unlocked', request: updatedRequest });
   } catch (error) {
     next(error);
   }
@@ -68,4 +81,5 @@ export const voteHype = async (req, res, next) => {
         next(error);
     }
 }
+
 
