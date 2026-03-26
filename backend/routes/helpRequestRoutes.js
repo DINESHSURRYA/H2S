@@ -6,8 +6,8 @@ const router = express.Router();
 router.post('/create', helpRequestController.createRequest);
 router.get('/pending', helpRequestController.getPendingRequests);
 router.get('/volunteer/:volunteerId', helpRequestController.getVolunteerRequests);
-router.get('/volunteer/:volunteerId/raised', helpRequestController.getVolunteerRaisedRequests);
 router.put('/:id/approve', helpRequestController.approveRequest);
-
+router.post('/:id/hype', helpRequestController.voteHype);
 
 export default router;
+

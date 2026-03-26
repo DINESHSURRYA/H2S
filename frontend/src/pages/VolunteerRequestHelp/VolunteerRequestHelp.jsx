@@ -6,11 +6,11 @@ import styles from './VolunteerRequestHelp.module.css';
 
 const VolunteerRequestHelp = () => {
   const [formData, setFormData] = useState({
-    description: '',
+    crisisDescription: '',
   });
 
-  const [products, setProducts] = useState([
-    { product: '', quantity: '', reason: '' }
+  const [requirements, setRequirements] = useState([
+    { itemName: '', quantity: '', description: '' }
   ]);
 
   const [location, setLocation] = useState(null);
@@ -25,20 +25,20 @@ const VolunteerRequestHelp = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleProductChange = (index, e) => {
-    const updatedProducts = [...products];
-    updatedProducts[index][e.target.name] = e.target.value;
-    setProducts(updatedProducts);
+  const handleRequirementChange = (index, e) => {
+    const updatedRequirements = [...requirements];
+    updatedRequirements[index][e.target.name] = e.target.value;
+    setRequirements(updatedRequirements);
   };
 
-  const addProduct = () => {
-    setProducts([...products, { product: '', quantity: '', reason: '' }]);
+  const addRequirement = () => {
+    setRequirements([...requirements, { itemName: '', quantity: '', description: '' }]);
   };
 
-  const removeProduct = (index) => {
-    if (products.length > 1) {
-      const updatedProducts = products.filter((_, i) => i !== index);
-      setProducts(updatedProducts);
+  const removeRequirement = (index) => {
+    if (requirements.length > 1) {
+      const updatedRequirements = requirements.filter((_, i) => i !== index);
+      setRequirements(updatedRequirements);
     }
   };
 
@@ -91,23 +91,24 @@ const VolunteerRequestHelp = () => {
     setLoadingSubmit(true);
 
     try {
-      // Auto-populate identity from volunteer session
       const payload = {
         name: volData.name,
         email: volData.email,
-        contactInfo: volData.phone || volData.email, 
-        description: formData.description,
+        phone: volData.phone || volData.email, 
+        crisisDescription: formData.crisisDescription,
         location,
-        products,
-        raisedBy: volData.id,
+        requirements: requirements.map(req => ({
+            ...req,
+            quantity: Number(req.quantity) || 0
+        })),
       };
       
       const response = await createHelpRequest(payload);
       setSuccessId(response.requestId);
       setFormData({
-        description: '',
+        crisisDescription: '',
       });
-      setProducts([{ product: '', quantity: '', reason: '' }]);
+      setRequirements([{ itemName: '', quantity: '', description: '' }]);
       setLocation(null);
     } catch (err) {
       setError(err.message || 'Failed to submit the request. Please try again later.');
@@ -166,10 +167,10 @@ const VolunteerRequestHelp = () => {
           <div className={styles.textareaGroup}>
             <label className={styles.textareaLabel}>Crisis Description & Situation</label>
             <textarea
-              name="description"
+              name="crisisDescription"
               className={styles.textarea}
               rows="4"
-              value={formData.description}
+              value={formData.crisisDescription}
               onChange={handleChange}
               placeholder="Provide a detailed operational summary of what requires immediate attention..."
               required
@@ -178,12 +179,12 @@ const VolunteerRequestHelp = () => {
 
           <div className={styles.productsSection}>
             <h3 className={styles.sectionTitle}>Requisition Array</h3>
-            {products.map((item, index) => (
+            {requirements.map((item, index) => (
               <div key={index} className={styles.productCard}>
                 <div className={styles.productHeader}>
                   <span className={styles.productCount}>Item Payload #{index + 1}</span>
-                  {products.length > 1 && (
-                    <button type="button" onClick={() => removeProduct(index)} className={styles.removeBtn}>
+                  {requirements.length > 1 && (
+                    <button type="button" onClick={() => removeRequirement(index)} className={styles.removeBtn}>
                       Remove Record
                     </button>
                   )}
@@ -191,9 +192,9 @@ const VolunteerRequestHelp = () => {
                 
                 <InputField
                   label="Classification Type / Product"
-                  name="product"
-                  value={item.product}
-                  onChange={(e) => handleProductChange(index, e)}
+                  name="itemName"
+                  value={item.itemName}
+                  onChange={(e) => handleRequirementChange(index, e)}
                   placeholder="E.g., Aerial Drone, HAZMAT Teams"
                   required
                 />
@@ -201,20 +202,21 @@ const VolunteerRequestHelp = () => {
                 <InputField
                   label="Units / Quantity"
                   name="quantity"
+                  type="number"
                   value={item.quantity}
-                  onChange={(e) => handleProductChange(index, e)}
-                  placeholder="E.g., 2 units, 1 squad"
+                  onChange={(e) => handleRequirementChange(index, e)}
+                  placeholder="E.g., 2"
                   required
                 />
                 
                 <div className={styles.textareaGroup}>
                   <label className={styles.textareaLabel}>Operational Requirement (Reason)</label>
                   <textarea
-                    name="reason"
+                    name="description"
                     className={styles.textarea}
                     rows="2"
-                    value={item.reason}
-                    onChange={(e) => handleProductChange(index, e)}
+                    value={item.description}
+                    onChange={(e) => handleRequirementChange(index, e)}
                     placeholder="Provide justification data for prioritization..."
                     required
                   />
@@ -222,7 +224,7 @@ const VolunteerRequestHelp = () => {
               </div>
             ))}
             
-            <button type="button" onClick={addProduct} className={styles.addBtn}>
+            <button type="button" onClick={addRequirement} className={styles.addBtn}>
               + Append Resource Requirement
             </button>
           </div>
@@ -240,3 +242,4 @@ const VolunteerRequestHelp = () => {
 };
 
 export default VolunteerRequestHelp;
+

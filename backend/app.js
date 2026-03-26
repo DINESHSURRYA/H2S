@@ -7,10 +7,12 @@ import ngoRoutes from './routes/ngoRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import volunteerRoutes from './routes/volunteerRoutes.js';
 import helpRequestRoutes from './routes/helpRequestRoutes.js';
+import grantedHelpRoutes from './routes/grantedHelpRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
+
 const __dirname = path.dirname(__filename);
 
 const app = express();
@@ -31,7 +33,9 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/help-request', helpRequestRoutes);
+app.use('/grant-help', grantedHelpRoutes);
 app.use('/ngo', ngoRoutes);
+
 app.use('/admin/api', adminRoutes);
 app.use('/volunteer', volunteerRoutes);
 

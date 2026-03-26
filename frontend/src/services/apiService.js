@@ -45,12 +45,11 @@ export const getPendingRequests = () => {
   return apiClient('/help-request/pending');
 };
 
+export const getMissions = getPendingRequests;
+
+
 export const getVolunteerRequests = (volunteerId) => {
   return apiClient(`/help-request/volunteer/${volunteerId}`);
-};
-
-export const getVolunteerRaisedRequests = (volunteerId) => {
-  return apiClient(`/help-request/volunteer/${volunteerId}/raised`);
 };
 
 export const approveHelpRequest = (id, volunteerId) => {
@@ -59,3 +58,18 @@ export const approveHelpRequest = (id, volunteerId) => {
     data: { volunteerId }
   });
 };
+
+export const grantHelp = (data) => {
+  return apiClient('/grant-help', {
+    method: 'POST',
+    data,
+  });
+};
+
+export const voteHype = (id, volunteerId, points) => {
+    return apiClient(`/help-request/${id}/hype`, {
+        method: 'POST',
+        data: { volunteerId, points }
+    });
+}
+

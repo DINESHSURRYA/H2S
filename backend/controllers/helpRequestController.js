@@ -1,24 +1,20 @@
 import helpRequestRepository from '../repository/helpRequestRepository.js';
+import publicUserRepository from '../repository/publicUserRepository.js';
 
 export const createRequest = async (req, res, next) => {
   try {
-    const { name, contactInfo, email, location, description, products, raisedBy } = req.body;
+    const { name, phone, email, location, crisisDescription, requirements } = req.body;
+
+    // Find or create public user
+    const publicUser = await publicUserRepository.findOrCreate({ name, phone, email });
 
     const requestData = {
-      name,
-      contactInfo,
-      email,
+      publicUser: publicUser._id,
       location,
-      description,
-      products,
-      raisedBy,
+      crisisDescription,
+      requirements,
+      status: 'pending'
     };
-
-    // If raised by a logged-in volunteer, auto-approve it
-    if (raisedBy) {
-      requestData.status = 'in-progress';
-      requestData.approvedBy = raisedBy;
-    }
 
     const newRequest = await helpRequestRepository.createHelpRequest(requestData);
 
@@ -34,8 +30,7 @@ export const createRequest = async (req, res, next) => {
 
 export const getPendingRequests = async (req, res, next) => {
   try {
-    const { volunteerId } = req.query;
-    const requests = await helpRequestRepository.getAllPendingRequests(volunteerId);
+    const requests = await helpRequestRepository.getAllPendingRequests();
     res.status(200).json(requests);
   } catch (error) {
     next(error);
@@ -52,16 +47,6 @@ export const getVolunteerRequests = async (req, res, next) => {
   }
 };
 
-export const getVolunteerRaisedRequests = async (req, res, next) => {
-  try {
-    const { volunteerId } = req.params;
-    const requests = await helpRequestRepository.getRequestsRaisedByVolunteer(volunteerId);
-    res.status(200).json(requests);
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const approveRequest = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -72,3 +57,15 @@ export const approveRequest = async (req, res, next) => {
     next(error);
   }
 };
+
+export const voteHype = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { volunteerId, points } = req.body;
+        const updatedRequest = await helpRequestRepository.voteHype(id, volunteerId, points);
+        res.status(200).json({ message: 'Hype points added', request: updatedRequest });
+    } catch (error) {
+        next(error);
+    }
+}
+

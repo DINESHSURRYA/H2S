@@ -3,30 +3,30 @@ import HelpRequest from '../models/helpRequestModel.js';
 class HelpRequestRepository {
   async createHelpRequest(data) {
     const helpRequest = new HelpRequest(data);
-    return await helpRequest.save();
+    return await (await helpRequest.save()).populate('publicUser');
   }
 
   async getHelpRequestById(id) {
-    return await HelpRequest.findById(id);
+    return await HelpRequest.findById(id)
+      .populate('publicUser')
+      .populate('approvedBy')
+      .populate('hype.volunteer')
+      .populate({
+          path: 'requirements.grantedList',
+          populate: { path: 'ngoId' }
+      });
   }
 
-  async getAllPendingRequests(volunteerId = null) {
-    const query = { status: 'pending' };
-    if (volunteerId) {
-      query.raisedBy = { $ne: volunteerId };
-    }
-    return await HelpRequest.find(query).sort({ createdAt: -1 });
+  async getAllPendingRequests() {
+    return await HelpRequest.find({ status: 'pending' })
+      .populate('publicUser')
+      .sort({ createdAt: -1 });
   }
 
   async getRequestsByVolunteer(volunteerId) {
-    return await HelpRequest.find({ 
-      approvedBy: volunteerId, 
-      raisedBy: { $ne: volunteerId } 
-    }).sort({ createdAt: -1 });
-  }
-
-  async getRequestsRaisedByVolunteer(volunteerId) {
-    return await HelpRequest.find({ raisedBy: volunteerId }).sort({ createdAt: -1 });
+    return await HelpRequest.find({ approvedBy: volunteerId })
+      .populate('publicUser')
+      .sort({ createdAt: -1 });
   }
 
   async updateHelpRequestStatus(id, status, volunteerId) {
@@ -34,12 +34,24 @@ class HelpRequestRepository {
       id,
       { status, approvedBy: volunteerId },
       { new: true }
-    );
+    ).populate('approvedBy');
+  }
+
+  async voteHype(requestId, volunteerId, points) {
+      return await HelpRequest.findByIdAndUpdate(
+          requestId,
+          { $push: { hype: { volunteer: volunteerId, points } } },
+          { new: true }
+      ).populate('hype.volunteer');
   }
 
   async getAllHelpRequests() {
-    return await HelpRequest.find().sort({ createdAt: -1 });
+    return await HelpRequest.find()
+      .populate('publicUser')
+      .populate('approvedBy')
+      .sort({ createdAt: -1 });
   }
 }
 
 export default new HelpRequestRepository();
+

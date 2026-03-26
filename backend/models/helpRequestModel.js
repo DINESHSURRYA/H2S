@@ -2,16 +2,10 @@ import mongoose from 'mongoose';
 
 const helpRequestSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
+    publicUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'PublicUser',
       required: true,
-    },
-    contactInfo: {
-      type: String,
-      required: true,
-    },
-    email: {
-      type: String,
     },
     location: {
       latitude: {
@@ -23,15 +17,21 @@ const helpRequestSchema = new mongoose.Schema(
         required: true,
       },
     },
-    description: {
+    crisisDescription: {
       type: String,
       required: true,
     },
-    products: [
+    requirements: [
       {
-        product: { type: String, required: true },
-        quantity: { type: String, required: true },
-        reason: { type: String, required: true },
+        itemName: { type: String, required: true },
+        quantity: { type: Number, required: true },
+        description: { type: String, required: true },
+        grantedList: [
+          {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'GrantedHelp',
+          }
+        ],
       }
     ],
     status: {
@@ -44,11 +44,18 @@ const helpRequestSchema = new mongoose.Schema(
       ref: 'Volunteer',
       default: null,
     },
-    raisedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Volunteer',
-      default: null,
-    },
+    hype: [
+      {
+        volunteer: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Volunteer',
+        },
+        points: {
+          type: Number,
+          default: 0,
+        }
+      }
+    ],
   },
   { timestamps: true }
 );
@@ -56,3 +63,4 @@ const helpRequestSchema = new mongoose.Schema(
 const HelpRequest = mongoose.model('HelpRequest', helpRequestSchema);
 
 export default HelpRequest;
+
