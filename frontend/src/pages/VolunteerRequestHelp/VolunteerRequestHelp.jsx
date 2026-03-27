@@ -1,19 +1,29 @@
 import React, { useState } from 'react';
-import { createHelpRequest } from '../../services/apiService';
+import { useLocation } from 'react-router-dom';
+import { createHelpRequest, editHelpRequest } from '../../services/apiService';
 import InputField from '../../components/InputField/InputField';
 import Button from '../../components/Button/Button';
 import styles from './VolunteerRequestHelp.module.css';
+import MapPicker from '../../components/MapPicker/MapPicker';
 
-const VolunteerRequestHelp = () => {
+const VolunteerRequestHelp = ({ editData: propEditData, onCancel }) => {
+  const routerLocation = useLocation();
+  const editData = propEditData || routerLocation.state?.requestToEdit;
+
   const [formData, setFormData] = useState({
-    crisisDescription: '',
+    crisisDescription: editData?.crisisDescription || '',
   });
 
-  const [requirements, setRequirements] = useState([
-    { itemName: '', quantity: '', description: '' }
-  ]);
+  const [requirements, setRequirements] = useState(
+    editData?.requirements || [{ itemName: '', quantity: '', description: '' }]
+  );
 
-  const [location, setLocation] = useState(null);
+  const [requiredVolunteers, setRequiredVolunteers] = useState(
+    editData?.requiredVolunteers || []
+  );
+
+  const [location, setLocation] = useState(editData?.location || null);
+  const [locationMode, setLocationMode] = useState(editData?.location ? 'map' : null); // Simple heuristic for edit mode
   const [locationError, setLocationError] = useState('');
   const [loadingLocation, setLoadingLocation] = useState(false);
 
@@ -48,6 +58,20 @@ const VolunteerRequestHelp = () => {
       const updatedRequirements = requirements.filter((_, i) => i !== index);
       setRequirements(updatedRequirements);
     }
+  };
+
+  const addVolunteerRole = () => {
+    setRequiredVolunteers([...requiredVolunteers, { role: 'General Manual Labor', count: 1, assignedVolunteers: [] }]);
+  };
+
+  const removeVolunteerRole = (index) => {
+    setRequiredVolunteers(requiredVolunteers.filter((_, i) => i !== index));
+  };
+
+  const handleVolunteerRoleChange = (index, field, value) => {
+    const updated = [...requiredVolunteers];
+    updated[index][field] = field === 'count' ? Math.max(1, Number(value)) : value;
+    setRequiredVolunteers(updated);
   };
 
   const handleGetLocation = () => {
@@ -110,19 +134,27 @@ const VolunteerRequestHelp = () => {
             ...req,
             quantity: Number(req.quantity) || 0
         })),
+        requiredVolunteers: requiredVolunteers.map(rv => ({
+            ...rv,
+            count: Number(rv.count) || 1
+        })),
         volunteerId: volData.id
       };
 
-      
-      const response = await createHelpRequest(payload);
-      setSuccessId(response.requestId);
-      setFormData({
-        crisisDescription: '',
-      });
-      setRequirements([{ itemName: '', quantity: '', description: '' }]);
-      setLocation(null);
+      if (editData?._id) {
+          await editHelpRequest(editData._id, payload);
+          alert('Request updated successfully!');
+          onCancel?.();
+      } else {
+          const response = await createHelpRequest(payload);
+          setSuccessId(response.requestId);
+          setFormData({ crisisDescription: '' });
+          setRequirements([{ itemName: '', quantity: '', description: '' }]);
+          setRequiredVolunteers([]);
+          setLocation(null);
+      }
     } catch (err) {
-      setError(err.message || 'Failed to submit the request. Please try again later.');
+      setError(err.response?.data?.message || err.message || 'Failed to process request.');
     } finally {
       setLoadingSubmit(false);
     }
@@ -161,16 +193,50 @@ const VolunteerRequestHelp = () => {
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.locationGroup}>
             <p className={styles.locationLabel}>Crisis Location (Required)</p>
-            {location ? (
-              <div className={styles.locationSuccess}>
-                📍 GPS Location Captured: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
+            
+            {!locationMode && !location && (
+              <div className={styles.locationSelector}>
+                <Button type="button" onClick={() => setLocationMode('live')}>
+                  Capture Live Feed
+                </Button>
+                <div className={styles.orDivider}>OR</div>
+                <Button type="button" onClick={() => setLocationMode('map')}>
+                  Deploy Map Pin
+                </Button>
               </div>
-            ) : (
+            )}
+
+            {locationMode === 'live' && !location && (
               <div className={styles.locationAction}>
+                <p className={styles.modeIndicator}>📡 Active GPS Acquisition</p>
                 <Button type="button" onClick={handleGetLocation} disabled={loadingLocation}>
-                  {loadingLocation ? 'Acquiring GPS...' : 'Capture Coordinate Feed'}
+                  {loadingLocation ? 'Acquiring GPS...' : 'Execute Capture Protocol'}
+                </Button>
+                <Button type="button" className={styles.cancelBtn} onClick={() => setLocationMode(null)}>
+                  Abort Method
                 </Button>
                 {locationError && <p className={styles.locationErrorText}>{locationError}</p>}
+              </div>
+            )}
+
+            {locationMode === 'map' && !location && (
+              <div className={styles.locationAction}>
+                <p className={styles.modeIndicator}>🗺️ Manual Coordinate Deployment</p>
+                <MapPicker onLocationSelect={(coords) => setLocation(coords)} />
+                <Button type="button" className={styles.cancelBtn} onClick={() => setLocationMode(null)}>
+                  Abort Method
+                </Button>
+              </div>
+            )}
+
+            {location && (
+              <div className={styles.locationSuccess}>
+                <div className={styles.successGrid}>
+                    <span>📍 {locationMode === 'live' ? 'GPS' : 'Map Pin'} captured: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}</span>
+                    <button type="button" className={styles.resetLocation} onClick={() => { setLocation(null); setLocationMode(null); }}>
+                        Recalibrate Location
+                    </button>
+                </div>
               </div>
             )}
           </div>
@@ -240,6 +306,54 @@ const VolunteerRequestHelp = () => {
             
             <button type="button" onClick={addRequirement} className={styles.addBtn}>
               + Append Resource Requirement
+            </button>
+          </div>
+
+          <div className={styles.productsSection} style={{ marginTop: '2rem' }}>
+            <h3 className={styles.sectionTitle}>Manpower Requisition (Specialized Personnel)</h3>
+            {requiredVolunteers.map((rv, index) => (
+              <div key={index} className={styles.productCard} style={{ borderLeft: '4px solid #6366f1' }}>
+                <div className={styles.productHeader}>
+                  <span className={styles.productCount}>Volunteer Role #{index + 1}</span>
+                  <button type="button" onClick={() => removeVolunteerRole(index)} className={styles.removeBtn}>
+                    Remove Role
+                  </button>
+                </div>
+                
+                <div className={styles.selectGroup}>
+                    <label className={styles.selectLabel}>Specialized Role</label>
+                    <select 
+                        className={styles.select}
+                        value={rv.role}
+                        onChange={(e) => handleVolunteerRoleChange(index, 'role', e.target.value)}
+                    >
+                        <option value="Medical Assistant">Medical Assistant</option>
+                        <option value="Search & Rescue">Search & Rescue</option>
+                        <option value="Heavy Vehicle Driver">Heavy Vehicle Driver</option>
+                        <option value="Logistics Coordinator">Logistics Coordinator</option>
+                        <option value="Food & Water Distribution">Food & Water Distribution</option>
+                        <option value="Emergency Shelter Support">Emergency Shelter Support</option>
+                        <option value="First Aid Responder">First Aid Responder</option>
+                        <option value="Communication Specialist">Communication Specialist</option>
+                        <option value="General Manual Labor">General Manual Labor</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <InputField
+                  label="Required Personnel Count"
+                  type="number"
+                  min={1}
+                  value={rv.count}
+                  onChange={(e) => handleVolunteerRoleChange(index, 'count', e.target.value)}
+                  placeholder="E.g., 5"
+                  required
+                />
+              </div>
+            ))}
+            
+            <button type="button" onClick={addVolunteerRole} className={styles.addBtn}>
+              + Append Manpower Role
             </button>
           </div>
 

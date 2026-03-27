@@ -30,8 +30,21 @@ class GrantedHelpRepository {
 
     const remaining = reqItem.quantity - totalGranted;
 
+    // 🛑 VALIDATION: Already fullfilled?
+    if (remaining <= 0) {
+      throw new Error('This requirement is already fully fulfilled by other NGOs.');
+    }
+
+    // 🛑 VALIDATION: NGO already contributed?
+    const alreadyContributed = grantedDocs.some(
+      g => g.ngoId.toString() === data.ngoId.toString()
+    );
+    if (alreadyContributed) {
+      throw new Error('Your NGO has already contributed to this requirement.');
+    }
+
     if (safeQty > remaining) {
-      throw new Error('Exceeds required quantity');
+      throw new Error(`Exceeds required quantity. Only ${remaining} left.`);
     }
 
     // ✅ Create grant
@@ -77,6 +90,14 @@ class GrantedHelpRepository {
     return await GrantedHelp.findByIdAndUpdate(
       id,
       { status },
+      { new: true }
+    );
+  }
+
+  async markAsReceived(id) {
+    return await GrantedHelp.findByIdAndUpdate(
+      id,
+      { isReceived: true },
       { new: true }
     );
   }

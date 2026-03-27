@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
   getApprovedRequests,
   grantHelp,
-  toggleLock
+  getNgoGrants
 } from '../../services/apiService';
 import styles from './NgoMissions.module.css';
 
-const NgoMissions = () => {
+const NgoMissions = ({ filterMode }) => {
   const [missions, setMissions] = useState([]);
+  const [myGrants, setMyGrants] = useState([]);
   const [selectedMission, setSelectedMission] = useState(null);
   const [grantAmounts, setGrantAmounts] = useState({});
   const [loading, setLoading] = useState(true);
@@ -17,10 +18,14 @@ const NgoMissions = () => {
   const ngoId = ngoData?._id || ngoData?.id;
 
   useEffect(() => {
-    fetchMissions();
-    const i = setInterval(fetchMissions, 8000);
-    return () => clearInterval(i);
+    fetchAll();
   }, []);
+
+  const fetchAll = async () => {
+    setLoading(true);
+    await Promise.all([fetchMissions(), fetchMyGrants()]);
+    setLoading(false);
+  };
 
   const fetchMissions = async () => {
     try {
@@ -28,8 +33,15 @@ const NgoMissions = () => {
       setMissions(data);
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchMyGrants = async () => {
+    try {
+      const data = await getNgoGrants(ngoId);
+      setMyGrants(data);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -38,22 +50,14 @@ const NgoMissions = () => {
     return Math.max(0, req.quantity - total);
   };
 
-  const openMission = async (mission) => {
-    if (mission.isLocked && mission.lockedByNGO !== ngoId) {
-      alert('Locked by another NGO');
-      return;
-    }
-
-    await toggleLock(mission._id, true, ngoId);
+  const openMission = (mission) => {
     setSelectedMission(mission);
-
     const init = {};
     mission.requirements.forEach(r => init[r._id] = '');
     setGrantAmounts(init);
   };
 
-  const closeMission = async () => {
-    await toggleLock(selectedMission._id, false, ngoId);
+  const closeMission = () => {
     setSelectedMission(null);
   };
 
@@ -76,39 +80,74 @@ const NgoMissions = () => {
         helpRequestId: selectedMission._id
       });
 
-      await toggleLock(selectedMission._id, false, ngoId);
       setSelectedMission(null);
-      fetchMissions();
+      fetchAll();
 
-    } catch {
-      alert('Failed');
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to allocate');
     } finally {
       setAllocating(false);
     }
   };
+
+  const isFullySatisfied = (mission) => {
+    return mission.requirements.every(req => getRemaining(req) <= 0);
+  };
+
+  const availableMissions = missions.filter(m => !isFullySatisfied(m));
 
   if (loading) return <div className={styles.center}>Loading...</div>;
 
   return (
     <div className={styles.container}>
 
-      <h2>Mission Stream</h2>
+      {filterMode === 'verified' && (
+        <div className={styles.grid}>
+          {availableMissions.length > 0 ? (
+            availableMissions.map(m => (
+              <div key={m._id} className={styles.card}>
+                <h3>{m.crisisDescription}</h3>
+                <p className={styles.meta}>
+                  🔥 {m.hype?.reduce((a, h) => a + h.points, 0) || 0}
+                </p>
+                <button onClick={() => openMission(m)}>
+                  Contribute
+                </button>
+              </div>
+            ))
+          ) : (
+            <p>No available requests requiring help.</p>
+          )}
+        </div>
+      )}
 
-      <div className={styles.grid}>
-        {missions.map(m => (
-          <div key={m._id} className={styles.card}>
-            <h3>{m.crisisDescription}</h3>
+      {filterMode === 'field' && (
+        <div className={styles.grid}>
+          {myGrants.length > 0 ? (
+            // Grouping myGrants by helpRequestId
+            Array.from(new Set(myGrants.map(g => g.helpRequestId?._id))).map(reqId => {
+              const mission = myGrants.find(G => G.helpRequestId?._id === reqId)?.helpRequestId;
+              if (!mission) return null;
+              const myContribs = myGrants.filter(G => G.helpRequestId?._id === reqId);
 
-            <p className={styles.meta}>
-              🔥 {m.hype?.reduce((a, h) => a + h.points, 0) || 0}
-            </p>
-
-            <button onClick={() => openMission(m)}>
-              {m.isLocked ? 'Locked' : 'Contribute'}
-            </button>
-          </div>
-        ))}
-      </div>
+              return (
+                <div key={reqId} className={styles.card}>
+                  <h3>{mission.crisisDescription}</h3>
+                  <div className={styles.myContribs}>
+                    {myContribs.map((c, idx) => (
+                      <div key={idx} className={styles.contribLine}>
+                        ✅ {c.quantityApproved} units for {mission.requirements.find(r => r._id === c.requirementId)?.itemName || 'Item'}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p>You haven't contributed to any missions yet.</p>
+          )}
+        </div>
+      )}
 
       {/* MODAL */}
       {selectedMission && (
@@ -117,42 +156,48 @@ const NgoMissions = () => {
 
             <h3>{selectedMission.crisisDescription}</h3>
 
-            {selectedMission.requirements.map(req => (
-              <div key={req._id} className={styles.req}>
+            {selectedMission.requirements.map(req => {
+              const remaining = getRemaining(req);
+              const isFulfilled = remaining <= 0;
 
-                <div className={styles.reqTop}>
-                  <span>{req.itemName}</span>
-                  <span>{getRemaining(req)} / {req.quantity}</span>
-                </div>
+              return (
+                <div key={req._id} className={styles.req}>
+                  <div className={styles.reqTop}>
+                    <span>{req.itemName}</span>
+                    <span>{remaining} / {req.quantity}</span>
+                  </div>
 
-                <div className={styles.contrib}>
-                  {req.grantedList?.map((g, i) => (
-                    <div key={i}>
-                      {g.ngoId?.name || 'NGO'}: {g.quantityApproved}
+                  <div className={styles.contrib}>
+                    {req.grantedList?.map((g, i) => (
+                      <div key={i}>
+                        {g.ngoId?.name || 'NGO'}: {g.quantityApproved}
+                      </div>
+                    ))}
+                  </div>
+
+                  {!isFulfilled ? (
+                    <div className={styles.row}>
+                      <input
+                        type="number"
+                        placeholder="Qty"
+                        value={grantAmounts[req._id] || ''}
+                        onChange={(e) =>
+                          setGrantAmounts({
+                            ...grantAmounts,
+                            [req._id]: Number(e.target.value)
+                          })
+                        }
+                      />
+                      <button onClick={() => handleGrant(req._id)}>
+                        Allocate
+                      </button>
                     </div>
-                  ))}
+                  ) : (
+                    <div className={styles.fulfilledLabel}>Fully Satisfied</div>
+                  )}
                 </div>
-
-                <div className={styles.row}>
-                  <input
-                    type="number"
-                    value={grantAmounts[req._id] || ''}
-                    onChange={(e) =>
-                      setGrantAmounts({
-                        ...grantAmounts,
-                        [req._id]: Number(e.target.value)
-                      })
-                    }
-                  />
-
-                  <button onClick={() => handleGrant(req._id)}>
-                    Allocate
-                  </button>
-                </div>
-
-              </div>
-            ))}
-
+              );
+            })}
           </div>
         </div>
       )}

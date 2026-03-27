@@ -3,6 +3,7 @@ import { createHelpRequest } from '../../services/apiService';
 import InputField from '../../components/InputField/InputField';
 import Button from '../../components/Button/Button';
 import styles from './RequestHelp.module.css';
+import MapPicker from '../../components/MapPicker/MapPicker';
 
 const RequestHelp = () => {
   const [formData, setFormData] = useState({
@@ -48,6 +49,7 @@ const RequestHelp = () => {
   }, []);
 
   const [location, setLocation] = useState(null);
+  const [locationMode, setLocationMode] = useState(null); // 'live' or 'map'
   const [locationError, setLocationError] = useState('');
   const [loadingLocation, setLoadingLocation] = useState(false);
 
@@ -197,16 +199,50 @@ const RequestHelp = () => {
           {/* Location Section */}
           <div className={styles.locationGroup}>
             <p className={styles.locationLabel}>Your Location (Required)</p>
-            {location ? (
-              <div className={styles.locationSuccess}>
-                📍 GPS Location Captured: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
+            
+            {!locationMode && !location && (
+              <div className={styles.locationSelector}>
+                <Button type="button" onClick={() => setLocationMode('live')}>
+                  Take Live Location
+                </Button>
+                <div className={styles.orDivider}>OR</div>
+                <Button type="button" onClick={() => setLocationMode('map')}>
+                  Pin in Map
+                </Button>
               </div>
-            ) : (
+            )}
+
+            {locationMode === 'live' && !location && (
               <div className={styles.locationAction}>
+                <p className={styles.modeIndicator}>📡 Live GPS Mode</p>
                 <Button type="button" onClick={handleGetLocation} disabled={loadingLocation}>
-                  {loadingLocation ? 'Getting location...' : 'Get My GPS Location'}
+                  {loadingLocation ? 'Getting location...' : 'Activate GPS Capture'}
+                </Button>
+                <Button type="button" className={styles.cancelBtn} onClick={() => setLocationMode(null)}>
+                  Change Method
                 </Button>
                 {locationError && <p className={styles.locationErrorText}>{locationError}</p>}
+              </div>
+            )}
+
+            {locationMode === 'map' && !location && (
+              <div className={styles.locationAction}>
+                <p className={styles.modeIndicator}>🗺️ Manual Pin Mode</p>
+                <MapPicker onLocationSelect={(coords) => setLocation(coords)} />
+                <Button type="button" className={styles.cancelBtn} onClick={() => setLocationMode(null)}>
+                  Change Method
+                </Button>
+              </div>
+            )}
+
+            {location && (
+              <div className={styles.locationSuccess}>
+                <div className={styles.successGrid}>
+                    <span>📍 {locationMode === 'live' ? 'GPS' : 'Map Pin'} captured: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}</span>
+                    <button type="button" className={styles.resetLocation} onClick={() => { setLocation(null); setLocationMode(null); }}>
+                        Edit Location
+                    </button>
+                </div>
               </div>
             )}
           </div>

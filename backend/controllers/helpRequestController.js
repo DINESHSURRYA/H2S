@@ -88,16 +88,6 @@ export const approveRequest = async (req, res, next) => {
   }
 };
 
-export const toggleLock = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { isLocked, ngoId } = req.body;
-    const updatedRequest = await helpRequestRepository.toggleLock(id, isLocked, ngoId);
-    res.status(200).json({ message: isLocked ? 'Request locked' : 'Request unlocked', request: updatedRequest });
-  } catch (error) {
-    next(error);
-  }
-};
 
 export const voteHype = async (req, res, next) => {
     try {
@@ -123,6 +113,39 @@ export const getUnapprovedRequests = async (req, res, next) => {
   try {
     const requests = await helpRequestRepository.getUnapprovedRequests();
     res.status(200).json(requests);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const editRequest = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    const updatedRequest = await helpRequestRepository.updateHelpRequest(id, updateData);
+    res.status(200).json({ message: 'Request updated successfully', request: updatedRequest });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const assignToRole = async (req, res, next) => {
+  try {
+    const { id, roleId } = req.params;
+    const { volunteerId } = req.body;
+    const updatedRequest = await helpRequestRepository.assignVolunteerToRole(id, roleId, volunteerId);
+    res.status(200).json({ message: 'Volunteer assigned to role', request: updatedRequest });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const unassignFromRole = async (req, res, next) => {
+  try {
+    const { id, roleId } = req.params;
+    const { volunteerId } = req.body;
+    const updatedRequest = await helpRequestRepository.unassignVolunteerFromRole(id, roleId, volunteerId);
+    res.status(200).json({ message: 'Volunteer unassigned from role', request: updatedRequest });
   } catch (error) {
     next(error);
   }

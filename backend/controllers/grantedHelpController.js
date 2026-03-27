@@ -52,3 +52,13 @@ export const updateGrantStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+export const markAsReceived = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const updatedGrant = await grantedHelpRepository.markAsReceived(id);
+    res.status(200).json({ message: 'Item marked as received', grant: updatedGrant });
+  } catch (error) {
+    next(error);
+  }
+};

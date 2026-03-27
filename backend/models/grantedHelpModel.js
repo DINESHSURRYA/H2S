@@ -17,6 +17,10 @@ const grantedHelpSchema = new mongoose.Schema(
       enum: ['pending', 'fulfilled', 'cancelled'],
       default: 'pending'
     },
+    isReceived: {
+      type: Boolean,
+      default: false
+    },
     requirementId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true

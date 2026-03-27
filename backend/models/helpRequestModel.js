@@ -59,21 +59,18 @@ const helpRequestSchema = new mongoose.Schema(
       default: 'pending',
     },
 
+    requiredVolunteers: [
+      {
+        role: { type: String, required: true },
+        count: { type: Number, required: true, min: 1 },
+        assignedVolunteers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Volunteer' }]
+      }
+    ],
+
     // ✅ Who validated it
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Volunteer',
-      default: null,
-    },
-
-    isLocked: {
-      type: Boolean,
-      default: false,
-    },
-
-    lockedByNGO: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Ngo',
       default: null,
     },
 

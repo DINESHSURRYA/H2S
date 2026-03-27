@@ -13,7 +13,8 @@ const VolunteerRegister = () => {
     password: '',
     aadharNumber: '',
     phone: '',
-    skills: '',
+    skills: [],
+    otherSkill: '',
     availability: 'part-time',
   });
   const [error, setError] = useState('');
@@ -29,16 +30,20 @@ const VolunteerRegister = () => {
     setLoading(true);
 
     try {
-      // Split skills by comma and trim
+      const finalSkills = [...formData.skills];
+      if (formData.otherSkill.trim()) {
+        finalSkills.push(formData.otherSkill.trim());
+      }
+      
       const processedData = {
         ...formData,
-        skills: formData.skills.split(',').map(s => s.trim()).filter(s => s !== ''),
+        skills: finalSkills.map(s => ({ name: s, verified: false })),
       };
       
       const response = await registerVolunteer(processedData);
       localStorage.setItem('volunteerToken', response.token);
       localStorage.setItem('volunteerData', JSON.stringify(response.volunteer));
-      navigate('/');
+      navigate('/volunteer-dashboard'); // Updated to point to dashboard
     } catch (err) {
       setError(err.message || 'Registration failed');
     } finally {
@@ -97,13 +102,43 @@ const VolunteerRegister = () => {
             onChange={handleChange}
             placeholder="+1 (555) 000-0000"
           />
-          <InputField
-            label="Skills (comma separated)"
-            name="skills"
-            value={formData.skills}
-            onChange={handleChange}
-            placeholder="First Aid, Driving, Tech Support"
-          />
+          <div className={styles.skillsGroup}>
+            <label className={styles.selectLabel}>Skills / Specializations</label>
+            <div className={styles.checkboxGrid}>
+              {[
+                'Medical Assistant',
+                'Search & Rescue',
+                'Heavy Vehicle Driver',
+                'Logistics Coordinator',
+                'Food & Water Distribution',
+                'Emergency Shelter Support',
+                'First Aid Responder',
+                'Communication Specialist',
+                'General Manual Labor'
+              ].map(skill => (
+                <label key={skill} className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={formData.skills.includes(skill)}
+                    onChange={(e) => {
+                      const newSkills = e.target.checked
+                        ? [...formData.skills, skill]
+                        : formData.skills.filter(s => s !== skill);
+                      setFormData({ ...formData, skills: newSkills });
+                    }}
+                  />
+                  {skill}
+                </label>
+              ))}
+            </div>
+            <InputField
+              label="Other Skills (Optional)"
+              name="otherSkill"
+              value={formData.otherSkill || ''}
+              onChange={(e) => setFormData({ ...formData, otherSkill: e.target.value })}
+              placeholder="e.g. Scuba Diving, Plumbing"
+            />
+          </div>
           
           <div className={styles.selectGroup}>
             <label className={styles.selectLabel}>Availability</label>

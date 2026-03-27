@@ -57,7 +57,7 @@ export const getApprovedRequests = () => {
 export const getMissions = getPendingRequests;
 
 
-export const getVolunteerRequests = (volunteerId) => {
+export const getRequestsByVolunteer = (volunteerId) => {
   return apiClient(`/help-request/volunteer/${volunteerId}`);
 };
 
@@ -88,5 +88,51 @@ export const toggleLock = (id, isLocked, ngoId) => {
         data: { isLocked, ngoId }
     });
 }
+
+export const getNgoGrants = (ngoId) => {
+  return apiClient(`/grant-help/ngo/${ngoId}`);
+};
+
+export const editHelpRequest = (id, data) => {
+  return apiClient(`/help-request/${id}`, {
+    method: 'PUT',
+    data
+  });
+};
+
+export const assignVolunteer = (id, roleId, volunteerId) => {
+  return apiClient(`/help-request/${id}/assign/${roleId}`, {
+    method: 'POST',
+    data: { volunteerId }
+  });
+};
+
+export const markAsReceived = (grantId) => {
+  return apiClient(`/grant-help/${grantId}/received`, {
+    method: 'POST'
+  });
+};
+
+export const getUnverifiedVolunteers = () => {
+  return apiClient('/volunteer/unverified');
+};
+
+export const verifySkill = (data) => {
+  return apiClient('/volunteer/verify-skill', {
+    method: 'POST',
+    data
+  });
+};
+
+export const getVolunteerProfile = (id) => {
+  return apiClient(`/volunteer/${id}`);
+};
+
+export const updateVolunteerProfile = (id, data) => {
+  return apiClient(`/volunteer/${id}`, {
+    method: 'PUT',
+    data
+  });
+};
 
 

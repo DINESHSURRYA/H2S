@@ -16,6 +16,10 @@ export const apiClient = async (endpoint, options = {}) => {
   const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
 
   console.log(`[apiClient] Request: ${method} ${url} (Base: "${baseUrl}")`);
+  const ngoToken = localStorage.getItem('ngoToken');
+  const volunteerToken = localStorage.getItem('volunteerToken');
+  const token = ngoToken || volunteerToken;
+
   const config = {
     method,
     headers: {
@@ -24,6 +28,10 @@ export const apiClient = async (endpoint, options = {}) => {
     },
     ...rest,
   };
+
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
 
   if (data) {
     config.body = JSON.stringify(data);

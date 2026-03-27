@@ -24,10 +24,15 @@ const volunteerSchema = new mongoose.Schema(
     phone: {
       type: String,
     },
-    skills: {
-      type: [String],
-      default: [],
-    },
+    skills: [
+      {
+        name: { type: String, required: true },
+        verified: { type: Boolean, default: false },
+        verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Ngo', default: null },
+        verificationReport: { type: String, default: '' },
+        verifiedAt: { type: Date }
+      }
+    ],
     availability: {
       type: String,
       enum: ['full-time', 'part-time', 'weekends', 'on-call'],

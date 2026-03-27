@@ -4,11 +4,12 @@ import styles from './NgoDashboard.module.css';
 import Button from '../../components/Button/Button';
 import NgoOverview from './NgoOverview';
 import NgoMissions from './NgoMissions';
+import VolunteerVerification from './VolunteerVerification';
 
 const NgoDashboard = () => {
   const navigate = useNavigate();
   const [ngoData, setNgoData] = useState(null);
-  const [filterMode, setFilterMode] = useState('verified'); // 'verified' or 'field'
+  const [filterMode, setFilterMode] = useState('verified'); // 'verified', 'field', or 'verification'
 
   useEffect(() => {
     const data = localStorage.getItem('ngoData');
@@ -62,11 +63,22 @@ const NgoDashboard = () => {
                     onClick={() => setFilterMode('field')}
                     style={{ background: filterMode === 'field' ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)', border: 'none', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                 >
-                    HELPED REQUESTS (PENDING)
+                    HELPED REQUESTS
+                </button>
+                <button 
+                    className={`${styles.tab} ${filterMode === 'verification' ? styles.activeTab : ''}`}
+                    onClick={() => setFilterMode('verification')}
+                    style={{ background: filterMode === 'verification' ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)', border: 'none', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                    SKILL VERIFICATION
                 </button>
            </div>
 
-           <NgoMissions filterMode={filterMode} />
+           {filterMode === 'verification' ? (
+             <VolunteerVerification />
+           ) : (
+             <NgoMissions filterMode={filterMode} />
+           )}
         </div>
       </div>
     </div>

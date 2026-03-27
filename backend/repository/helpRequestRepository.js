@@ -32,6 +32,14 @@ class HelpRequestRepository {
   async getRequestsByVolunteer(volunteerId) {
     return await HelpRequest.find({ approvedBy: volunteerId })
       .populate('publicUser')
+      .populate('requiredVolunteers.assignedVolunteers')
+      .populate({
+        path: 'requirements.grantedList',
+        populate: {
+          path: 'ngoId',
+          select: 'name'
+        }
+      })
       .sort({ createdAt: -1 });
   }
 
@@ -42,30 +50,63 @@ class HelpRequestRepository {
       id,
       update,
       { new: true }
-    ).populate('approvedBy');
+    ).populate('approvedBy').populate('requiredVolunteers.assignedVolunteers');
   }
 
-  async toggleLock(id, isLocked, ngoId) {
-    return await HelpRequest.findByIdAndUpdate(
-        id,
-        { isLocked, lockedByNGO: isLocked ? ngoId : null },
-        { new: true }
-    );
-  }
 
   async voteHype(requestId, volunteerId, points) {
       return await HelpRequest.findByIdAndUpdate(
           requestId,
           { $push: { hype: { volunteer: volunteerId, points } } },
           { new: true }
-      ).populate('hype.volunteer');
+      ).populate('hype.volunteer').populate('requiredVolunteers.assignedVolunteers');
   }
 
+
+  async updateHelpRequest(id, data) {
+    return await HelpRequest.findByIdAndUpdate(
+      id,
+      { $set: data },
+      { new: true }
+    ).populate('publicUser').populate('approvedBy').populate('requiredVolunteers.assignedVolunteers');
+  }
+
+  async assignVolunteerToRole(requestId, roleId, volunteerId) {
+    // Check if volunteer has verified skill for this role
+    const volunteer = await Volunteer.findById(volunteerId);
+    if (!volunteer) throw new Error('Volunteer not found');
+
+    const helpRequest = await HelpRequest.findById(requestId);
+    if (!helpRequest) throw new Error('Help request not found');
+
+    const roleObj = helpRequest.requiredVolunteers.id(roleId);
+    if (!roleObj) throw new Error('Role not found in request');
+
+    const skill = volunteer.skills.find(s => s.name === roleObj.role);
+    if (!skill || !skill.verified) {
+      throw new Error(`Volunteer must have a verified '${roleObj.role}' skill to join this role.`);
+    }
+
+    return await HelpRequest.findOneAndUpdate(
+      { _id: requestId, 'requiredVolunteers._id': roleId },
+      { $addToSet: { 'requiredVolunteers.$.assignedVolunteers': volunteerId } },
+      { new: true }
+    ).populate('requiredVolunteers.assignedVolunteers');
+  }
+
+  async unassignVolunteerFromRole(requestId, roleId, volunteerId) {
+    return await HelpRequest.findOneAndUpdate(
+      { _id: requestId, 'requiredVolunteers._id': roleId },
+      { $pull: { 'requiredVolunteers.$.assignedVolunteers': volunteerId } },
+      { new: true }
+    ).populate('requiredVolunteers.assignedVolunteers');
+  }
 
   async getAllHelpRequests() {
     return await HelpRequest.find()
       .populate('publicUser')
       .populate('approvedBy')
+      .populate('requiredVolunteers.assignedVolunteers')
       .sort({ createdAt: -1 });
   }
 
@@ -77,6 +118,7 @@ class HelpRequestRepository {
     })
       .populate('publicUser')
       .populate('approvedBy')
+      .populate('requiredVolunteers.assignedVolunteers')
       .populate({
         path: 'requirements.grantedList',
         populate: {
@@ -92,6 +134,7 @@ class HelpRequestRepository {
       approvedBy: null            // ✅ only NOT approved
     })
       .populate('publicUser')
+      .populate('requiredVolunteers.assignedVolunteers')
       .sort({ createdAt: -1 });
   }
 }
