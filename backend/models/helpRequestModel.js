@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const helpRequestSchema = new mongoose.Schema(
   {
-    // ✅ Source of request (either one)
+    // Source of request (either public user or field volunteer)
     publicUser: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'PublicUser',
@@ -13,6 +13,24 @@ const helpRequestSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Volunteer',
       default: null,
+    },
+
+    category: {
+      type: String,
+      enum: ['Food & Water', 'Medical', 'Rescue', 'Shelter', 'Logistics', 'Other'],
+      default: 'Other',
+    },
+
+    urgency: {
+      type: String,
+      enum: ['low', 'medium', 'high', 'critical'],
+      default: 'medium',
+    },
+
+    affectedCount: {
+      type: Number,
+      default: 1,
+      min: 1,
     },
 
     location: {
@@ -39,7 +57,7 @@ const helpRequestSchema = new mongoose.Schema(
         quantity: {
           type: Number,
           required: true,
-          min: 1, // 🔒 prevents negative / zero
+          min: 1,
         },
 
         description: { type: String, required: true, trim: true },
@@ -48,9 +66,9 @@ const helpRequestSchema = new mongoose.Schema(
           {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'GrantedHelp',
-          }
+          },
         ],
-      }
+      },
     ],
 
     status: {
@@ -63,11 +81,11 @@ const helpRequestSchema = new mongoose.Schema(
       {
         role: { type: String, required: true },
         count: { type: Number, required: true, min: 1 },
-        assignedVolunteers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Volunteer' }]
-      }
+        assignedVolunteers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Volunteer' }],
+      },
     ],
 
-    // ✅ Who validated it
+    // Volunteer who validated the crisis report
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Volunteer',
@@ -82,12 +100,12 @@ const helpRequestSchema = new mongoose.Schema(
         },
         points: {
           type: Number,
-          default: 0,
-          min: 0,
-        }
-      }
+          default: 1,
+          min: 1,
+          max: 5,
+        },
+      },
     ],
-
   },
   { timestamps: true }
 );

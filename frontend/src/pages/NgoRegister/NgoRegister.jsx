@@ -29,9 +29,19 @@ const NgoRegister = () => {
 
     try {
       const response = await registerNgo(formData);
+      const ngo = response.ngo;
+      const normalizedNgo = {
+        ...ngo,
+        _id: ngo._id || ngo.id,
+        id: ngo.id || ngo._id,
+      };
+
+      localStorage.removeItem('volunteerToken');
+      localStorage.removeItem('volunteerData');
+
       localStorage.setItem('ngoToken', response.token);
-      localStorage.setItem('ngoData', JSON.stringify(response.ngo));
-      navigate('/');
+      localStorage.setItem('ngoData', JSON.stringify(normalizedNgo));
+      navigate('/ngo/dashboard');
     } catch (err) {
       setError(err.message || 'Registration failed');
     } finally {
@@ -43,10 +53,10 @@ const NgoRegister = () => {
     <div className={styles.container}>
       <div className={styles.card}>
         <h1 className={styles.title}>NGO Registration</h1>
-        <p className={styles.subtitle}>Join H2S to coordinate crisis response.</p>
-        
+        <p className={styles.subtitle}>Join H2S to coordinate verified crisis response.</p>
+
         {error && <div className={styles.errorBanner}>{error}</div>}
-        
+
         <form onSubmit={handleSubmit} className={styles.form}>
           <InputField
             label="NGO Name"
@@ -79,14 +89,14 @@ const NgoRegister = () => {
             name="phone"
             value={formData.phone}
             onChange={handleChange}
-            placeholder="+1 (555) 000-0000"
+            placeholder="+91 98765 43210"
           />
           <InputField
             label="Registration Number"
             name="registrationNumber"
             value={formData.registrationNumber}
             onChange={handleChange}
-            placeholder="Official ID"
+            placeholder="Official NGO Registration ID"
           />
           <InputField
             label="Address"
@@ -95,12 +105,12 @@ const NgoRegister = () => {
             onChange={handleChange}
             placeholder="Full Office Address"
           />
-          
+
           <Button type="submit" disabled={loading}>
             {loading ? 'Registering...' : 'Complete Registration'}
           </Button>
         </form>
-        
+
         <p className={styles.footer}>
           Already registered? <Link to="/ngo/login">Login here</Link>
         </p>

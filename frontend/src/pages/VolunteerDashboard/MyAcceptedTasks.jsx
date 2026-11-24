@@ -1,100 +1,150 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import styles from './VolunteerDashboard.module.css';
-import { markAsReceived } from '../../services/apiService';
+import { markAsReceived, resolveHelpRequest } from '../../services/apiService';
 
-const MyAcceptedTasks = ({ requests, volunteerData, onUpdate, onEdit }) => {
+const MyAcceptedTasks = ({ requests, volunteerData, onUpdate, onEdit, onToast }) => {
   const volunteerId = volunteerData?._id || volunteerData?.id;
 
   const handleMarkReceived = async (grantId) => {
     try {
-      await markAsReceived(grantId);
-      alert('Items marked as received!');
+      const res = await markAsReceived(grantId);
+      onToast?.(res.message || 'Supply delivery confirmed!');
       onUpdate?.();
     } catch (err) {
-      alert('Failed to update status');
+      onToast?.(err.message || 'Failed to confirm delivery.');
     }
   };
 
-  // This function is no longer used based on the provided diff,
-  // as the "MARK AS RECEIVED" button is now always available for accepted tasks.
-  // Keeping it commented out or removing it depends on the full context,
-  // but the diff implies its removal from the rendering logic.
-  // const isVolunteerAssigned = (req) => {
-  //   return req.requiredVolunteers?.some(rv =>
-  //       rv.assignedVolunteers?.some(v => (v._id || v) === volunteerId)
-  //   );
-  // };
+  const handleResolve = async (requestId) => {
+    try {
+      const res = await resolveHelpRequest(requestId, volunteerId);
+      onToast?.(res.message || 'Mission marked as resolved (+20 Trust XP)!');
+      onUpdate?.();
+    } catch (err) {
+      onToast?.(err.message || 'Failed to resolve mission.');
+    }
+  };
+
+  const canConfirmDelivery = (req) => {
+    const approverId = req.approvedBy?._id || req.approvedBy;
+    const creatorId = req.volunteer?._id || req.volunteer;
+    if (approverId === volunteerId || creatorId === volunteerId) return true;
+    return req.requiredVolunteers?.some((rv) =>
+      rv.assignedVolunteers?.some((v) => (v?._id || v) === volunteerId)
+    );
+  };
 
   return (
     <div className={styles.section}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 className={styles.sectionTitle}>MY ACTIVE MISSIONS</h2>
-      </div>
+      <h2 className={styles.sectionTitle}>My Active &amp; Validated Missions</h2>
       {requests.length === 0 ? (
-        <p className={styles.placeholderText}>Not approved any requests yet...</p>
+        <p className={styles.placeholderText}>
+          You haven't validated, raised, or joined any missions yet. Validate a request in the SOS Queue or raise a field report!
+        </p>
       ) : (
         <div className={styles.requestGrid}>
           {requests.map((req) => {
-            const isAssigned = (req) => {
-                return req.requiredVolunteers?.some(rv => 
-                    rv.assignedVolunteers?.some(v => (v._id || v) === volunteerId)
-                );
-            };
+            const eligible = canConfirmDelivery(req);
+            const isResolved = req.status === 'resolved';
 
             return (
               <div key={req._id} className={`${styles.requestCard} ${styles.verifiedLayer}`}>
                 <div className={styles.cardHeader}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-                    <h3 style={{ margin: 0 }}>{req.publicUser?.name || 'Unknown Subject'}</h3>
-                    <span className={styles.verifiedChip}>IN-PROGRESS</span>
+                  <div className={styles.headerMeta}>
+                    <h3 className={styles.requestName}>
+                      {req.publicUser?.name || req.volunteer?.name || 'Field Mission'}
+                    </h3>
+                    <span className={isResolved ? styles.resolvedChip : styles.verifiedChip}>
+                      {(req.status || 'validated').toUpperCase()}
+                    </span>
+                    <span className={`${styles.urgencyChip} ${styles[`urgency_${req.urgency || 'medium'}`]}`}>
+                      {(req.urgency || 'medium').toUpperCase()}
+                    </span>
                   </div>
-                  <button 
-                    onClick={() => onEdit(req)}
-                    className={styles.editBtn}
-                    style={{ background: '#4b5563', color: 'white', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
-                  >
-                    EDIT NEEDS
-                  </button>
+                  <div className={styles.headerActions}>
+                    <Link to={`/track-request/${req._id}`} className={styles.trackLink}>
+                      Tracker
+                    </Link>
+                    {!isResolved && (
+                      <button type="button" onClick={() => onEdit(req)} className={styles.editBtn}>
+                        Edit Needs
+                      </button>
+                    )}
+                  </div>
                 </div>
-                
-                <span className={styles.metaCoords}>📍 {req.location?.latitude?.toFixed(4) || '—'} // {req.location?.longitude?.toFixed(4) || '—'}</span>
-                <p className={styles.requestDesc} style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>{req.crisisDescription}</p>
-                
-                <div className={styles.productTags} style={{ marginTop: '1rem' }}>
-                  <h4 style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.5rem' }}>SUPPLY TRACKING:</h4>
+
+                <div className={styles.metaRow}>
+                  <span className={styles.categoryTag}>{req.category || 'Other'}</span>
+                  <span className={styles.metaCoords}>
+                    📍 {req.location?.latitude?.toFixed(4) || '—'}, {req.location?.longitude?.toFixed(4) || '—'}
+                  </span>
+                  <span className={styles.metaCoords}>👥 {req.affectedCount || 1} affected</span>
+                </div>
+
+                <p className={styles.requestDesc}>{req.crisisDescription}</p>
+
+                <div className={styles.subSection}>
+                  <h4 className={styles.subHeading}>Supply Allocation &amp; Delivery Tracking</h4>
                   {req.requirements?.map((p, idx) => (
-                    <div key={idx} style={{ marginBottom: '0.75rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                          <span className={styles.tag} style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '4px' }}>
-                              {p.quantity} × {p.itemName?.toUpperCase() || 'UNSPECIFIED'}
-                          </span>
-                      </div>
-                      {p.grantedList?.map((g, gi) => (
-                          <div key={gi} style={{ marginLeft: '1.5rem', marginTop: '0.4rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center' }}>
-                               📦 {g.ngoId?.name || 'NGO'}: {g.quantityApproved}
-                               {g.isReceived ? (
-                                   <span className={styles.receivedLabel} style={{ marginLeft: '1rem', color: '#10b981', fontWeight: 'bold' }}>✓ RECEIVED</span>
-                               ) : (
-                                   isAssigned(req) ? (
-                                       <button 
-                                          className={styles.receivedBtn}
-                                          onClick={() => handleMarkReceived(g._id || g)}
-                                          style={{ marginLeft: '1rem', background: '#10b981', color: 'white', border: 'none', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem' }}
-                                       >
-                                           MARK RECEIVED
-                                       </button>
-                                   ) : (
-                                       <span style={{ marginLeft: '1rem', color: '#64748b', fontSize: '0.7rem' }}>(Pending)</span>
-                                   )
-                               )}
+                    <div key={p._id || idx} className={styles.supplyBlock}>
+                      <span className={styles.supplyTag}>
+                        {p.quantity} × {p.itemName}
+                      </span>
+                      {p.grantedList?.length > 0 ? (
+                        p.grantedList.map((g, gi) => (
+                          <div key={g._id || gi} className={styles.grantLine}>
+                            <span>
+                              📦 {g.ngoId?.name || 'Verified NGO'}: <strong>{g.quantityApproved} units</strong>
+                            </span>
+                            {g.isReceived ? (
+                              <span className={styles.receivedLabel}>✓ RECEIVED</span>
+                            ) : eligible ? (
+                              <button
+                                type="button"
+                                className={styles.receivedBtn}
+                                onClick={() => handleMarkReceived(g._id || g)}
+                              >
+                                Confirm Delivery
+                              </button>
+                            ) : (
+                              <span className={styles.pendingNote}>In Transit</span>
+                            )}
                           </div>
-                      ))}
+                        ))
+                      ) : (
+                        <div className={styles.pendingNote}>Awaiting NGO supply pledge</div>
+                      )}
                     </div>
                   ))}
                 </div>
 
-                <div className={styles.requestFooter} style={{ borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '1.5rem', paddingTop: '1rem' }}>
-                  <span className={styles.timestamp}>ASSIGNMENT TIMESTAMP: {new Date(req.createdAt).toLocaleDateString()}</span>
+                {req.requiredVolunteers?.length > 0 && (
+                  <div className={styles.subSection}>
+                    <h4 className={styles.subHeading}>Field Team Roster</h4>
+                    <div className={styles.productTags}>
+                      {req.requiredVolunteers.map((rv, i) => (
+                        <span key={rv._id || i} className={styles.tag}>
+                          {rv.role}: {rv.assignedVolunteers?.length || 0}/{rv.count}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className={styles.requestFooter}>
+                  <span className={styles.timestamp}>
+                    Created: {new Date(req.createdAt).toLocaleDateString()}
+                  </span>
+                  {!isResolved && (
+                    <button
+                      type="button"
+                      className={styles.resolveBtn}
+                      onClick={() => handleResolve(req._id)}
+                    >
+                      Mark Mission Resolved
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -106,4 +156,3 @@ const MyAcceptedTasks = ({ requests, volunteerData, onUpdate, onEdit }) => {
 };
 
 export default MyAcceptedTasks;
-

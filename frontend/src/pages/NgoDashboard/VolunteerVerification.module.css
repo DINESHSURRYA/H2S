@@ -113,3 +113,40 @@
   cursor: pointer;
   font-weight: bold;
 }
+
+.volName {
+  color: #f8fafc;
+  margin-bottom: 0.25rem;
+}
+
+.volMeta {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.noData {
+  color: #94a3b8;
+  text-align: center;
+  padding: 2rem;
+  font-style: italic;
+}
+
+.successBanner {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #6ee7b7;
+  padding: 0.75rem 1rem;
+  border-radius: 0.65rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.88rem;
+}
+
+.errorBanner {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+  padding: 0.75rem 1rem;
+  border-radius: 0.65rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.88rem;
+}

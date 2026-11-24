@@ -5,6 +5,18 @@ import InputField from '../../components/InputField/InputField';
 import Button from '../../components/Button/Button';
 import styles from './VolunteerRegister.module.css';
 
+const SKILL_OPTIONS = [
+  'Medical Assistant',
+  'Search & Rescue',
+  'Heavy Vehicle Driver',
+  'Logistics Coordinator',
+  'Food & Water Distribution',
+  'Emergency Shelter Support',
+  'First Aid Responder',
+  'Communication Specialist',
+  'General Manual Labor',
+];
+
 const VolunteerRegister = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -34,16 +46,31 @@ const VolunteerRegister = () => {
       if (formData.otherSkill.trim()) {
         finalSkills.push(formData.otherSkill.trim());
       }
-      
+
       const processedData = {
-        ...formData,
-        skills: finalSkills.map(s => ({ name: s, verified: false })),
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        aadharNumber: formData.aadharNumber,
+        phone: formData.phone,
+        availability: formData.availability,
+        skills: finalSkills,
       };
-      
+
       const response = await registerVolunteer(processedData);
+      const vol = response.volunteer;
+      const normalizedVol = {
+        ...vol,
+        _id: vol._id || vol.id,
+        id: vol.id || vol._id,
+      };
+
+      localStorage.removeItem('ngoToken');
+      localStorage.removeItem('ngoData');
+
       localStorage.setItem('volunteerToken', response.token);
-      localStorage.setItem('volunteerData', JSON.stringify(response.volunteer));
-      navigate('/volunteer-dashboard'); // Updated to point to dashboard
+      localStorage.setItem('volunteerData', JSON.stringify(normalizedVol));
+      navigate('/volunteer/dashboard');
     } catch (err) {
       setError(err.message || 'Registration failed');
     } finally {
@@ -55,10 +82,10 @@ const VolunteerRegister = () => {
     <div className={styles.container}>
       <div className={styles.card}>
         <h1 className={styles.title}>Volunteer Registration</h1>
-        <p className={styles.subtitle}>Lend your skills to make a difference.</p>
-        
+        <p className={styles.subtitle}>Lend your verified skills to make an immediate difference.</p>
+
         {error && <div className={styles.errorBanner}>{error}</div>}
-        
+
         <form onSubmit={handleSubmit} className={styles.form}>
           <InputField
             label="Full Name"
@@ -91,31 +118,22 @@ const VolunteerRegister = () => {
             name="aadharNumber"
             value={formData.aadharNumber}
             onChange={handleChange}
-            placeholder="XXXX XXXX XXXX (12-digit)"
+            placeholder="12-digit Aadhaar Number"
             required
-            maxLength="12"
+            maxLength={14}
           />
           <InputField
             label="Phone Number"
             name="phone"
             value={formData.phone}
             onChange={handleChange}
-            placeholder="+1 (555) 000-0000"
+            placeholder="+91 98765 43210"
           />
+
           <div className={styles.skillsGroup}>
             <label className={styles.selectLabel}>Skills / Specializations</label>
             <div className={styles.checkboxGrid}>
-              {[
-                'Medical Assistant',
-                'Search & Rescue',
-                'Heavy Vehicle Driver',
-                'Logistics Coordinator',
-                'Food & Water Distribution',
-                'Emergency Shelter Support',
-                'First Aid Responder',
-                'Communication Specialist',
-                'General Manual Labor'
-              ].map(skill => (
+              {SKILL_OPTIONS.map((skill) => (
                 <label key={skill} className={styles.checkboxLabel}>
                   <input
                     type="checkbox"
@@ -123,7 +141,7 @@ const VolunteerRegister = () => {
                     onChange={(e) => {
                       const newSkills = e.target.checked
                         ? [...formData.skills, skill]
-                        : formData.skills.filter(s => s !== skill);
+                        : formData.skills.filter((s) => s !== skill);
                       setFormData({ ...formData, skills: newSkills });
                     }}
                   />
@@ -134,18 +152,18 @@ const VolunteerRegister = () => {
             <InputField
               label="Other Skills (Optional)"
               name="otherSkill"
-              value={formData.otherSkill || ''}
-              onChange={(e) => setFormData({ ...formData, otherSkill: e.target.value })}
-              placeholder="e.g. Scuba Diving, Plumbing"
+              value={formData.otherSkill}
+              onChange={handleChange}
+              placeholder="e.g., Boat Operation, Electrical Repair"
             />
           </div>
-          
+
           <div className={styles.selectGroup}>
             <label className={styles.selectLabel}>Availability</label>
-            <select 
-              name="availability" 
-              className={styles.select} 
-              value={formData.availability} 
+            <select
+              name="availability"
+              className={styles.select}
+              value={formData.availability}
               onChange={handleChange}
             >
               <option value="full-time">Full-time</option>
@@ -154,12 +172,12 @@ const VolunteerRegister = () => {
               <option value="on-call">On-call</option>
             </select>
           </div>
-          
+
           <Button type="submit" disabled={loading}>
             {loading ? 'Registering...' : 'Join as Volunteer'}
           </Button>
         </form>
-        
+
         <p className={styles.footer}>
           Already have an account? <Link to="/volunteer/login">Login here</Link>
         </p>

@@ -1,99 +1,73 @@
-# 🌌 H2S Core - Modern ES6+ Full-Stack Ecosystem
+# H2S — Smart Crisis Management System
 
-[![React](https://img.shields.io/badge/Frontend-React%20+%20Vite-61DAFB?logo=react)](https://reactjs.org/)
-[![Node](https://img.shields.io/badge/Backend-Node.js%20(Express)-339933?logo=node.js)](https://nodejs.org/)
-[![ES6](https://img.shields.io/badge/Standard-ES6%2B%20Clean%20Architecture-F7DF1E?logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![React](https://img.shields.io/badge/Frontend-React%2019%20+%20Vite%208-61DAFB?logo=react)](https://react.dev/)
+[![Node](https://img.shields.io/badge/Backend-Node.js%20+%20Express%205-339933?logo=node.js)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB%20+%20Mongoose%209-47A248?logo=mongodb)](https://www.mongodb.com/)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean%20Layered%20ESM-6366F1)](#)
 
-**H2S Core** is a production-grade boilerplate featuring a strict **Layered Architecture**, a sophisticated **SPA Routing** system, and a premium **Cyberpunk Cursor** experience.
+**H2S** is a full-stack, trust-verified **Smart Crisis Management System** connecting **Citizens**, **Field Volunteers**, **Verified NGOs**, and **Platform Administrators** to coordinate emergency relief from initial SOS report through verified supply delivery.
 
----
-
-## ✨ Key Features
-
-- ⚛️ **Modern SPA**: Seamless navigation using `react-router-dom` with zero page reloads.
-- 🎯 **Interactive Cursor**: Custom precision arrow pointer with a cinematic "GH" trailing effect (Lag-Lerp physics).
-- 🧩 **Zero-Inline Styling**: 100% modular CSS scoping using **CSS Modules** for absolute style isolation.
-- 🏗️ **Clean Architecture**: Orchestration-based controllers, independent service layers, and decoupled repositories.
-- 🔄 **AJAX Background Sync**: Real-time asynchronous data synchronization with visual "Updating" overlays.
-- 🛡️ **Robust Middleware**: Centralized error handling and request logging for enterprise-level stability.
+> For the complete system walkthrough, workflows, API reference, and demo accounts, see **[PROJECT_GUIDE.md](./PROJECT_GUIDE.md)**.
 
 ---
 
-## 📂 Project Structure
+## Key Capabilities
 
-### 🧠 Backend (Node.js)
-```text
-backend/
- ├── config/           # Centralized configuration (ports, envs)
- ├── controllers/      # Route orchestration logic
- ├── services/         # Core business logic & transformations
- ├── repository/       # Data Access Layer (Mock + Future DB)
- ├── routes/           # Express router definitions
- ├── middlewares/      # Error handling & Logger
- ├── utils/            # Standardized Response Wrapper
- ├── app.js            # Express application setup
- └── server.js         # Single-port (3000) entry point
+- **Public Emergency Portal (`/request-help`)**: GPS & interactive Leaflet map pin reporting with crisis category, urgency severity, affected headcount, and itemized supply needs.
+- **Live Public Request Tracker (`/track-request`)**: Real-time 4-stage status timeline (`Pending → Validated → In Progress → Resolved`), NGO supply pledge progress bars, delivery confirmations, and field team overview.
+- **Volunteer Field Interface (`/volunteer/dashboard`)**: Incoming public SOS verification queue, priority hype boosting, auto-validated field reporting with manpower roles, skill-gated team deployment, delivery confirmation, and dynamic **Trust Score XP**.
+- **NGO Command Hub (`/ngo/dashboard`)**: Urgency-sorted validated crisis feed, multi-NGO partial/full supply allocations, dispatch tracking, volunteer skill certification, and real-time impact statistics.
+- **Admin Command Center (`http://localhost:3000/admin`)**: Multi-tab governance portal with platform KPIs, NGO verification/suspension, volunteer oversight, and live crisis monitoring.
+
+---
+
+## Quick Start (Windows One-Click)
+
+Paste into your terminal (CMD or PowerShell) or double-click:
+
+```bat
+.\run_h2s.bat
 ```
 
-### 💻 Frontend (React + Vite)
-```text
-frontend/
- ├── src/
- │    ├── components/  # Modular UI & Isolated CSS Modules
- │    ├── pages/       # SPA Views (Home, User, Profile)
- │    ├── services/    # Middleman API Service & Client
- │    ├── hooks/       # Custom hooks for state orchestration
- │    ├── App.jsx      # Router & Layout Orchestrator
- │    └── index.css    # Global Resets
- └── vite.config.js    # Proxy configuration
-```
+Or start manually:
 
----
-
-## 🚀 Quick Start
-
-### 1. Prerequisite
-Ensure you have [Node.js](https://nodejs.org/) installed on your local system.
-
-### 2. Setup Backend
 ```bash
+# Terminal 1 — Backend (http://localhost:3000)
 cd backend
 npm install
+npm run seed
 npm start
-```
-*API accessible at: http://localhost:3000*
 
-### 3. Setup Frontend
-```bash
+# Terminal 2 — Frontend (http://localhost:5173)
 cd frontend
 npm install
 npm run dev
 ```
-*App accessible at: http://localhost:5173 (Default Vite Port)*
 
 ---
 
-## 🛠️ Technology Stack
+## Project Layout
 
-| Layer | Technology |
-| :--- | :--- |
-| **Frontend** | React 18, Vite, React Router 6, CSS Modules |
-| **Backend** | Node.js, Express, Morgan, Dotenv |
-| **Architecture** | Layered Clean Architecture (ESM) |
-| **Logic** | Async/Await, Controllers, Services |
-
----
-
-## 📖 Best Practices Implemented
-1. **Separation of Concerns**: UI never re-renders business logic; controllers never handle data processing.
-2. **ESM Compliance**: Strictly uses `import/export` and `.js` extensions for modern Node.js standards.
-3. **Immutability**: Leveraging functional components and React Hooks for predictable state management.
-4. **Performance**: Optimized particle calculations and lazy-refetch patterns to ensure 60fps interaction.
-
----
-
-### 🛡️ License
-Distributed under the MIT License. See `LICENSE` for more information.
-
-# H 2 S 🌌
+```text
+H2S/
+├── run_h2s.bat          # One-click Windows setup, seed & run script
+├── PROJECT_GUIDE.md     # Full overview, workflows, credentials & run guide
+├── coreidea.txt         # Original 15-pillar system vision
+├── documentation.txt    # Architecture notes & change log
+├── verify_missions.js   # Live backend smoke-test script
+├── backend/             # Node.js + Express 5 + Mongoose 9 (Clean Layered ESM)
+│   ├── admin/           # Admin Command Center web portal (/admin)
+│   ├── config/          # Environment & MongoDB connection
+│   ├── controllers/     # Request orchestration layer
+│   ├── services/        # Pure business logic & calculations
+│   ├── repository/      # Single-model MongoDB repositories
+│   ├── models/          # Mongoose schemas
+│   ├── routes/          # Express routers
+│   ├── middlewares/     # JWT auth, logging & centralized error handling
+│   └── initialiser_helpers/  # Idempotent admin & demo seeders
+└── frontend/            # React 19 + Vite 8 + Leaflet + CSS Modules
+    └── src/
+        ├── components/  # Reusable UI (Navbar, MapPicker, Button, InputField)
+        ├── pages/       # Home, RequestHelp, TrackRequest, NGO & Volunteer Hubs
+        └── services/    # Centralized apiClient & apiService
+```

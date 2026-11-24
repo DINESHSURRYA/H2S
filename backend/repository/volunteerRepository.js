@@ -7,11 +7,11 @@ class VolunteerRepository {
   }
 
   async findVolunteerByEmail(email) {
-    return await Volunteer.findOne({ email });
+    return await Volunteer.findOne({ email: email?.toLowerCase().trim() });
   }
 
   async findVolunteerByAadhar(aadharNumber) {
-    return await Volunteer.findOne({ aadharNumber });
+    return await Volunteer.findOne({ aadharNumber: aadharNumber?.trim() });
   }
 
   async findVolunteerById(id) {
@@ -21,37 +21,62 @@ class VolunteerRepository {
   }
 
   async getAllVolunteers() {
-    return await Volunteer.find({}).sort({ createdAt: -1 }).populate('skills.verifiedBy', 'name');
+    return await Volunteer.find({})
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .populate('skills.verifiedBy', 'name');
   }
 
   async updateVolunteer(id, data) {
-    return await Volunteer.findByIdAndUpdate(id, { $set: data }, { new: true }).select('-password');
+    return await Volunteer.findByIdAndUpdate(id, { $set: data }, { returnDocument: 'after' })
+      .select('-password')
+      .populate('skills.verifiedBy', 'name');
+  }
+
+  async incrementTrustScore(id, delta) {
+    return await Volunteer.findByIdAndUpdate(
+      id,
+      { $inc: { trustScore: delta } },
+      { returnDocument: 'after' }
+    ).select('-password');
   }
 
   async verifySkill(volunteerId, skillName, ngoId, report) {
     return await Volunteer.findOneAndUpdate(
       { _id: volunteerId, 'skills.name': skillName },
-      { 
-        $set: { 
+      {
+        $set: {
           'skills.$.verified': true,
           'skills.$.verifiedBy': ngoId,
           'skills.$.verificationReport': report,
-          'skills.$.verifiedAt': new Date()
-        } 
+          'skills.$.verifiedAt': new Date(),
+        },
       },
-      { new: true }
-    ).select('-password').populate('skills.verifiedBy', 'name');
+      { returnDocument: 'after' }
+    )
+      .select('-password')
+      .populate('skills.verifiedBy', 'name');
   }
 
   async getUnverifiedVolunteers() {
-    return await Volunteer.find({ 
-        'skills.verified': { $ne: true },
-        'skills.0': { $exists: true } // Ensure they have at least one skill
-    }).select('name email skills phone').sort({ createdAt: -1 });
+    return await Volunteer.find({
+      skills: { $elemMatch: { verified: false } },
+    })
+      .select('name email skills phone trustScore availability')
+      .sort({ createdAt: -1 });
   }
 
   async updateVolunteerStatus(id, status) {
-    return await Volunteer.findByIdAndUpdate(id, { status }, { new: true });
+    return await Volunteer.findByIdAndUpdate(id, { $set: { status } }, { returnDocument: 'after' }).select('-password');
+  }
+
+  async getCounts() {
+    const [total, active, suspended] = await Promise.all([
+      Volunteer.countDocuments(),
+      Volunteer.countDocuments({ status: 'active' }),
+      Volunteer.countDocuments({ status: 'suspended' }),
+    ]);
+    return { total, active, suspended };
   }
 }
 

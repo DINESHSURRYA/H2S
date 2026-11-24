@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import config from './config/config.js';
-import Admin from './models/adminModel.js';
-import authService from './services/authService.js';
+import config from '../config/config.js';
+import Admin from '../models/adminModel.js';
+import authService from '../services/authService.js';
 
 async function seedAdmin() {
   try {
@@ -10,7 +10,8 @@ async function seedAdmin() {
 
     const existingAdmin = await Admin.findOne({ email: 'admin@h2s.com' });
     if (existingAdmin) {
-      console.log('Admin already exists');
+      console.log('Admin already exists (admin@h2s.com / admin123)');
+      await mongoose.disconnect();
       process.exit(0);
     }
 
@@ -19,10 +20,11 @@ async function seedAdmin() {
       username: 'admin',
       email: 'admin@h2s.com',
       password: hashedPassword,
-      role: 'superadmin'
+      role: 'superadmin',
     });
 
     console.log('Admin seeded successfully: admin@h2s.com / admin123');
+    await mongoose.disconnect();
     process.exit(0);
   } catch (error) {
     console.error('Seeding Error:', error);

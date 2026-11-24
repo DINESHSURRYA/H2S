@@ -297,3 +297,42 @@ FRONTEND (per user action):
     - coreidea.txt
 
 ================================================================================
+
+
+[2026-11-24] Full-Stack Upgrade, Bug Fixes, Public Tracker & Launcher
+  WHAT: Upgraded backend clean architecture, Admin Command Center, Volunteer &
+        NGO Dashboards, added Public Request Tracker (/track-request), dynamic
+        Trust Score XP system, PROJECT_GUIDE.md, and Windows run_h2s.bat launcher.
+  WHY:  Fixed critical runtime crashes (missing Volunteer import in repository,
+        double-wrapped volunteer skills, broken /volunteer-dashboard redirect,
+        hardcoded localhost:5000 axios call, broken quantity input mouse lock,
+        missing seed imports/schemas, undefined CSS variables) and elevated the
+        platform to a cohesive, production-ready crisis coordination system.
+
+  Key Changes:
+    - Backend:
+      * Refactored helpRequestService.js into 100% pure business logic (no DB access).
+      * Enforced strict single-model repositories (removed cross-model access in
+        helpRequestRepository.js and grantedHelpRepository.js).
+      * Added category, urgency, affectedCount to HelpRequest model.
+      * Added GET /help-request/stats, GET /help-request/track/:id, PUT /help-request/:id/resolve,
+        GET /ngo/:id/stats, and Admin overview/volunteers/requests APIs.
+      * Fixed NGO verification to update isVerified alongside status; added dynamic
+        Trust Score XP rewards across validation, skill verification, grants & delivery.
+      * Fixed seed_admin.js relative imports & updated seed_entities.js to current schemas.
+    - Admin Panel (backend/admin/index.html):
+      * Upgraded to multi-tab Command Center with live KPIs, NGO verification,
+        volunteer management, crisis request monitoring, and XSS-safe rendering.
+    - Frontend:
+      * Defined missing global CSS tokens (--accent-color, --text-secondary, etc.).
+      * Rebuilt Home.jsx with live telemetry pulse, CTAs, and 4-tier hierarchy overview.
+      * Added TrackRequest page (/track-request and /track-request/:id).
+      * Upgraded RequestHelp & VolunteerRequestHelp with category/urgency/affectedCount
+        and fixed broken input props and session ID normalization.
+      * Upgraded VolunteerDashboard & NgoDashboard with live stats, full CSS Modules
+        (zero inline styles), fixed hype voting, fixed ContributeInPerson apiService use,
+        and delivery/resolution controls.
+    - Docs & Tooling:
+      * Created PROJECT_GUIDE.md and one-click run_h2s.bat launcher; updated README.md.
+
+================================================================================

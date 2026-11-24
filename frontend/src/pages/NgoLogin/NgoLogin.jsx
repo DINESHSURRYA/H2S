@@ -8,7 +8,7 @@ const NgoLogin = () => {
 
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
   });
 
   const [error, setError] = useState('');
@@ -17,7 +17,7 @@ const NgoLogin = () => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -28,25 +28,23 @@ const NgoLogin = () => {
 
     try {
       const response = await loginNgo(formData);
-
-      // 🔥 Normalize NGO
       const ngo = response.ngo;
       const normalizedNgo = {
         ...ngo,
-        _id: ngo._id || ngo.id
+        _id: ngo._id || ngo.id,
+        id: ngo.id || ngo._id,
       };
+
+      // Clear any stale volunteer session so auth tokens never collide
+      localStorage.removeItem('volunteerToken');
+      localStorage.removeItem('volunteerData');
 
       localStorage.setItem('ngoToken', response.token);
       localStorage.setItem('ngoData', JSON.stringify(normalizedNgo));
 
       navigate('/ngo/dashboard');
-
     } catch (err) {
-      setError(
-        err?.response?.data?.message ||
-        err.message ||
-        'Login failed'
-      );
+      setError(err?.data?.message || err.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -55,9 +53,8 @@ const NgoLogin = () => {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-
         <h1 className={styles.title}>NGO Login</h1>
-        <p className={styles.subtitle}>Access your mission dashboard</p>
+        <p className={styles.subtitle}>Access your mission command hub</p>
 
         {error && <div className={styles.error}>{error}</div>}
 
@@ -65,7 +62,7 @@ const NgoLogin = () => {
           <input
             type="email"
             name="email"
-            placeholder="Email"
+            placeholder="Email (demo: admin@ngo.com)"
             value={formData.email}
             onChange={handleChange}
             required
@@ -74,7 +71,7 @@ const NgoLogin = () => {
           <input
             type="password"
             name="password"
-            placeholder="Password"
+            placeholder="Password (demo: password123)"
             value={formData.password}
             onChange={handleChange}
             required
@@ -88,7 +85,6 @@ const NgoLogin = () => {
         <p className={styles.footer}>
           New NGO? <Link to="/ngo/register">Register</Link>
         </p>
-
       </div>
     </div>
   );

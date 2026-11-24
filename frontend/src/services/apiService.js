@@ -1,138 +1,91 @@
-import { apiClient } from "./apiClient.js";
+import { apiClient } from './apiClient.js';
 
 /**
  * API Service Layer.
- * All API calls should be defined here using the apiClient.
- * Each function abstracts a single backend endpoint.
+ * Every backend endpoint has a corresponding function here.
  */
 
-export const registerNgo = (data) => {
-  return apiClient('/ngo/register', {
-    method: 'POST',
-    data,
-  });
-};
+// Auth — NGO
+export const registerNgo = (data) =>
+  apiClient('/ngo/register', { method: 'POST', data });
 
-export const loginNgo = (data) => {
-  return apiClient('/ngo/login', {
-    method: 'POST',
-    data,
-  });
-};
+export const loginNgo = (data) =>
+  apiClient('/ngo/login', { method: 'POST', data });
 
-export const registerVolunteer = (data) => {
-  return apiClient('/volunteer/register', {
-    method: 'POST',
-    data,
-  });
-};
+export const getNgoProfile = (id) =>
+  apiClient(`/ngo/${id}`);
 
-export const loginVolunteer = (data) => {
-  return apiClient('/volunteer/login', {
-    method: 'POST',
-    data,
-  });
-};
+export const getNgoStats = (id) =>
+  apiClient(`/ngo/${id}/stats`);
 
-export const createHelpRequest = (data) => {
-  return apiClient('/help-request/create', {
-    method: 'POST',
-    data,
-  });
-};
+// Auth & Profile — Volunteer
+export const registerVolunteer = (data) =>
+  apiClient('/volunteer/register', { method: 'POST', data });
 
-export const getPendingRequests = () => {
-  return apiClient('/help-request/pending');
-};
+export const loginVolunteer = (data) =>
+  apiClient('/volunteer/login', { method: 'POST', data });
 
-// USED IN NGO
-export const getUnapprovedRequests = () => {
-  return apiClient('/help-request/unapproved');
-};
+export const getVolunteerProfile = (id) =>
+  apiClient(`/volunteer/${id}`);
 
-export const getApprovedRequests = () => {
-  return apiClient('/help-request/approved');
-};
+export const updateVolunteerProfile = (id, data) =>
+  apiClient(`/volunteer/${id}`, { method: 'PUT', data });
 
-export const getMissions = getPendingRequests;
+export const getUnverifiedVolunteers = () =>
+  apiClient('/volunteer/unverified');
 
+export const verifySkill = (data) =>
+  apiClient('/volunteer/verify-skill', { method: 'POST', data });
 
-export const getRequestsByVolunteer = (volunteerId) => {
-  return apiClient(`/help-request/volunteer/${volunteerId}`);
-};
+// Help Requests & Crisis Coordination
+export const getPlatformStats = () =>
+  apiClient('/help-request/stats');
 
-export const approveHelpRequest = (id, volunteerId) => {
-  return apiClient(`/help-request/${id}/approve`, {
-    method: 'PUT',
-    data: { volunteerId }
-  });
-};
+export const trackHelpRequest = (id) =>
+  apiClient(`/help-request/track/${id}`);
 
-export const grantHelp = (data) => {
-  return apiClient('/grant-help', {
-    method: 'POST',
-    data,
-  });
-};
+export const createHelpRequest = (data) =>
+  apiClient('/help-request/create', { method: 'POST', data });
 
-export const voteHype = (id, volunteerId, points) => {
-    return apiClient(`/help-request/${id}/hype`, {
-        method: 'POST',
-        data: { volunteerId, points }
-    });
-}
+export const getPendingRequests = () =>
+  apiClient('/help-request/pending');
 
-export const toggleLock = (id, isLocked, ngoId) => {
-    return apiClient(`/help-request/${id}/lock`, {
-        method: 'POST',
-        data: { isLocked, ngoId }
-    });
-}
+export const getUnapprovedRequests = () =>
+  apiClient('/help-request/unapproved');
 
-export const getNgoGrants = (ngoId) => {
-  return apiClient(`/grant-help/ngo/${ngoId}`);
-};
+export const getApprovedRequests = () =>
+  apiClient('/help-request/approved');
 
-export const editHelpRequest = (id, data) => {
-  return apiClient(`/help-request/${id}`, {
-    method: 'PUT',
-    data
-  });
-};
+export const getRequestsByVolunteer = (volunteerId) =>
+  apiClient(`/help-request/volunteer/${volunteerId}`);
 
-export const assignVolunteer = (id, roleId, volunteerId) => {
-  return apiClient(`/help-request/${id}/assign/${roleId}`, {
-    method: 'POST',
-    data: { volunteerId }
-  });
-};
+export const approveHelpRequest = (id, volunteerId) =>
+  apiClient(`/help-request/${id}/approve`, { method: 'PUT', data: { volunteerId } });
 
-export const markAsReceived = (grantId) => {
-  return apiClient(`/grant-help/${grantId}/received`, {
-    method: 'POST'
-  });
-};
+export const resolveHelpRequest = (id, volunteerId) =>
+  apiClient(`/help-request/${id}/resolve`, { method: 'PUT', data: { volunteerId } });
 
-export const getUnverifiedVolunteers = () => {
-  return apiClient('/volunteer/unverified');
-};
+export const voteHype = (id, volunteerId, points = 1) =>
+  apiClient(`/help-request/${id}/hype`, { method: 'POST', data: { volunteerId, points } });
 
-export const verifySkill = (data) => {
-  return apiClient('/volunteer/verify-skill', {
-    method: 'POST',
-    data
-  });
-};
+export const editHelpRequest = (id, data) =>
+  apiClient(`/help-request/${id}`, { method: 'PUT', data });
 
-export const getVolunteerProfile = (id) => {
-  return apiClient(`/volunteer/${id}`);
-};
+export const assignVolunteer = (id, roleId, volunteerId) =>
+  apiClient(`/help-request/${id}/assign/${roleId}`, { method: 'POST', data: { volunteerId } });
 
-export const updateVolunteerProfile = (id, data) => {
-  return apiClient(`/volunteer/${id}`, {
-    method: 'PUT',
-    data
-  });
-};
+export const unassignVolunteer = (id, roleId, volunteerId) =>
+  apiClient(`/help-request/${id}/unassign/${roleId}`, { method: 'POST', data: { volunteerId } });
 
+// Granted Help / Resource Allocations
+export const grantHelp = (data) =>
+  apiClient('/grant-help', { method: 'POST', data });
 
+export const getNgoGrants = (ngoId) =>
+  apiClient(`/grant-help/ngo/${ngoId}`);
+
+export const updateGrantStatus = (grantId, status) =>
+  apiClient(`/grant-help/${grantId}/status`, { method: 'PATCH', data: { status } });
+
+export const markAsReceived = (grantId) =>
+  apiClient(`/grant-help/${grantId}/received`, { method: 'POST' });

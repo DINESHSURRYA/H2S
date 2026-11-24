@@ -1,20 +1,14 @@
 import React from 'react';
 import styles from './Button.module.css';
 
-/**
- * Reusable Button component with modular styling.
- * @param {string} children - Content of the button.
- * @param {function} onClick - Click handler.
- * @returns {JSX.Element} - Styled interactive button.
- */
-const Button = ({ children, onClick, type = "button", disabled = false }) => {
-  // Use CSS module class instead of inline styles
+const Button = ({ children, onClick, type = 'button', disabled = false, className = '', ...rest }) => {
   return (
-    <button 
-      className={styles.button} 
-      type={type} 
+    <button
+      className={`${styles.button} ${className}`.trim()}
+      type={type}
       onClick={onClick}
       disabled={disabled}
+      {...rest}
     >
       {children}
     </button>

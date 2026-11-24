@@ -1,105 +1,66 @@
 import GrantedHelp from '../models/grantedHelpModel.js';
-import HelpRequest from '../models/helpRequestModel.js';
 
 class GrantedHelpRepository {
+  async createGrant(data) {
+    return await GrantedHelp.create(data);
+  }
 
-  async createGrantedHelp(data) {
-    const safeQty = Math.max(1, Number(data.quantityApproved) || 1);
-
-    // 🔍 Fetch request
-    const request = await HelpRequest.findById(data.helpRequestId);
-
-    if (!request) throw new Error('HelpRequest not found');
-
-    const reqItem = request.requirements.find(
-      r => r._id.toString() === data.requirementId
-    );
-
-    if (!reqItem) throw new Error('Requirement not found');
-
-    // 🧠 Calculate remaining
-    const grantedDocs = await GrantedHelp.find({
-      helpRequestId: data.helpRequestId,
-      requirementId: data.requirementId
-    });
-
-    const totalGranted = grantedDocs.reduce(
-      (sum, g) => sum + g.quantityApproved,
-      0
-    );
-
-    const remaining = reqItem.quantity - totalGranted;
-
-    // 🛑 VALIDATION: Already fullfilled?
-    if (remaining <= 0) {
-      throw new Error('This requirement is already fully fulfilled by other NGOs.');
-    }
-
-    // 🛑 VALIDATION: NGO already contributed?
-    const alreadyContributed = grantedDocs.some(
-      g => g.ngoId.toString() === data.ngoId.toString()
-    );
-    if (alreadyContributed) {
-      throw new Error('Your NGO has already contributed to this requirement.');
-    }
-
-    if (safeQty > remaining) {
-      throw new Error(`Exceeds required quantity. Only ${remaining} left.`);
-    }
-
-    // ✅ Create grant
-    const savedHelp = await GrantedHelp.create({
-      ...data,
-      quantityApproved: safeQty
-    });
-
-    // ✅ Push ONLY ObjectId (IMPORTANT FIX)
-    await HelpRequest.findByIdAndUpdate(
-      data.helpRequestId,
-      {
-        $push: {
-          'requirements.$[elem].grantedList': savedHelp._id
-        },
-        $set: { status: 'in-progress' }
-      },
-      {
-        arrayFilters: [{ 'elem._id': data.requirementId }],
-        returnDocument: 'after'
-      }
-    );
-
-    return savedHelp;
+  async findByRequestAndRequirement(helpRequestId, requirementId) {
+    return await GrantedHelp.find({ helpRequestId, requirementId });
   }
 
   async getGrantedHelpById(id) {
-    return await GrantedHelp.findById(id).populate('ngoId');
+    return await GrantedHelp.findById(id).populate('ngoId', '-password');
   }
 
   async getGrantedHelpByNGO(ngoId) {
     return await GrantedHelp.find({ ngoId })
       .populate('helpRequestId')
-      .populate('ngoId');
+      .populate('ngoId', '-password')
+      .sort({ createdAt: -1 });
   }
 
   async getGrantedHelpByRequest(helpRequestId) {
     return await GrantedHelp.find({ helpRequestId })
-      .populate('ngoId');
+      .populate('ngoId', '-password')
+      .sort({ createdAt: -1 });
   }
 
   async updateGrantedHelpStatus(id, status) {
-    return await GrantedHelp.findByIdAndUpdate(
-      id,
-      { status },
-      { new: true }
-    );
+    return await GrantedHelp.findByIdAndUpdate(id, { $set: { status } }, { returnDocument: 'after' });
   }
 
   async markAsReceived(id) {
     return await GrantedHelp.findByIdAndUpdate(
       id,
-      { isReceived: true },
-      { new: true }
+      { $set: { isReceived: true, status: 'fulfilled' } },
+      { returnDocument: 'after' }
     );
+  }
+
+  async getNgoAggregateStats(ngoId) {
+    const grants = await GrantedHelp.find({ ngoId, status: { $ne: 'cancelled' } });
+    const missionSet = new Set(grants.map((g) => g.helpRequestId?.toString()).filter(Boolean));
+    const totalUnits = grants.reduce((sum, g) => sum + (Number(g.quantityApproved) || 0), 0);
+    const confirmedDeliveries = grants.filter((g) => g.isReceived).length;
+
+    return {
+      missionsSupported: missionSet.size,
+      totalGrants: grants.length,
+      totalUnitsAllocated: totalUnits,
+      confirmedDeliveries,
+    };
+  }
+
+  async getGlobalGrantStats() {
+    const grants = await GrantedHelp.find({ status: { $ne: 'cancelled' } });
+    const totalUnits = grants.reduce((sum, g) => sum + (Number(g.quantityApproved) || 0), 0);
+    const deliveredCount = grants.filter((g) => g.isReceived).length;
+    return {
+      totalGrants: grants.length,
+      totalUnitsAllocated: totalUnits,
+      deliveredCount,
+    };
   }
 }
 

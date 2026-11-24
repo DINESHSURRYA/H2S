@@ -7,7 +7,7 @@ class NgoRepository {
   }
 
   async findNgoByEmail(email) {
-    return await Ngo.findOne({ email });
+    return await Ngo.findOne({ email: email?.toLowerCase().trim() });
   }
 
   async findNgoById(id) {
@@ -15,11 +15,34 @@ class NgoRepository {
   }
 
   async updateNgoStatus(id, status) {
-    return await Ngo.findByIdAndUpdate(id, { status }, { new: true });
+    const isVerified = status === 'active';
+    return await Ngo.findByIdAndUpdate(
+      id,
+      { $set: { status, isVerified } },
+      { returnDocument: 'after' }
+    ).select('-password');
+  }
+
+  async incrementTrustScore(id, delta) {
+    return await Ngo.findByIdAndUpdate(
+      id,
+      { $inc: { trustScore: delta } },
+      { returnDocument: 'after' }
+    ).select('-password');
   }
 
   async getAllNgos() {
-    return await Ngo.find({}).sort({ createdAt: -1 });
+    return await Ngo.find({}).select('-password').sort({ createdAt: -1 });
+  }
+
+  async getCounts() {
+    const [total, active, pending, suspended] = await Promise.all([
+      Ngo.countDocuments(),
+      Ngo.countDocuments({ status: 'active' }),
+      Ngo.countDocuments({ status: 'pending' }),
+      Ngo.countDocuments({ status: 'suspended' }),
+    ]);
+    return { total, active, pending, suspended };
   }
 }
 

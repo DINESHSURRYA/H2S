@@ -1,212 +1,257 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getVolunteerProfile, updateVolunteerProfile } from '../../services/apiService';
 import InputField from '../../components/InputField/InputField';
 import Button from '../../components/Button/Button';
 import styles from './VolunteerDashboard.module.css';
 
-const VolunteerProfile = () => {
+const AVAILABLE_ROLES = [
+  'Medical Assistant',
+  'Search & Rescue',
+  'Heavy Vehicle Driver',
+  'Logistics Coordinator',
+  'Food & Water Distribution',
+  'Emergency Shelter Support',
+  'First Aid Responder',
+  'Communication Specialist',
+  'General Manual Labor',
+];
+
+const VolunteerProfile = ({ onProfileSaved }) => {
   const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({ name: '', phone: '', availability: 'part-time', skills: [] });
   const [newSkill, setNewSkill] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const volunteerData = JSON.parse(localStorage.getItem('volunteerData'));
+  const volunteerData = JSON.parse(localStorage.getItem('volunteerData') || '{}');
   const volunteerId = volunteerData?._id || volunteerData?.id;
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
+    if (!volunteerId) {
+      setError('Session expired. Please log in again.');
+      setLoading(false);
+      return;
+    }
     try {
       const data = await getVolunteerProfile(volunteerId);
       setProfile(data);
       setFormData({
-        name: data.name,
-        phone: data.phone,
-        availability: data.availability,
-        skills: data.skills.map(s => s.name)
+        name: data.name || '',
+        phone: data.phone || '',
+        availability: data.availability || 'part-time',
+        skills: (data.skills || []).map((s) => s.name),
       });
+      setError('');
     } catch (err) {
-      console.error(err);
+      setError(err.message || 'Unable to load volunteer profile.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [volunteerId]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleUpdate = async () => {
+    setSaving(true);
+    setError('');
     try {
       const updated = await updateVolunteerProfile(volunteerId, formData);
-      setProfile(updated.volunteer);
-      localStorage.setItem('volunteerData', JSON.stringify(updated.volunteer));
+      const v = updated.volunteer;
+      const normalized = { ...v, _id: v._id || v.id, id: v.id || v._id };
+      setProfile(normalized);
+      localStorage.setItem('volunteerData', JSON.stringify(normalized));
       setIsEditing(false);
-      alert('Profile updated successfully!');
+      onProfileSaved?.();
     } catch (err) {
-      alert('Failed to update profile.');
+      setError(err.message || 'Failed to update profile.');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const AVAILABLE_ROLES = [
-    'Medical Assistant',
-    'Search & Rescue',
-    'Heavy Vehicle Driver',
-    'Logistics Coordinator',
-    'Food & Water Distribution',
-    'Emergency Shelter Support',
-    'First Aid Responder',
-    'Communication Specialist',
-    'General Manual Labor'
-  ];
-
   const addSkill = () => {
-    if (!newSkill) return;
-    if (formData.skills.includes(newSkill)) return;
+    if (!newSkill || formData.skills.includes(newSkill)) return;
     setFormData({ ...formData, skills: [...formData.skills, newSkill] });
     setNewSkill('');
   };
 
   const removeSkill = (skillName) => {
-      setFormData({ ...formData, skills: formData.skills.filter(s => s !== skillName) });
+    setFormData({ ...formData, skills: formData.skills.filter((s) => s !== skillName) });
   };
 
-  if (loading) return <div className={styles.loading}>Initializing Secure Profile...</div>;
+  if (loading) return <div className={styles.placeholderText}>Loading Responder Profile...</div>;
+  if (!profile) return <div className={styles.errorBanner}>{error || 'Profile unavailable.'}</div>;
 
-  const verifiedSkills = profile.skills.filter(s => s.verified);
-  const pendingSkills = profile.skills.filter(s => !s.verified);
+  const verifiedSkills = (profile.skills || []).filter((s) => s.verified);
+  const pendingSkills = (profile.skills || []).filter((s) => !s.verified);
 
   return (
     <div className={styles.profileContainer}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 className={styles.sectionTitle} style={{ margin: 0 }}>OPERATIONAL PROFILE</h2>
-        <button 
-            className={styles.editBtn} 
-            onClick={() => setIsEditing(!isEditing)}
-            style={{ background: isEditing ? '#ef4444' : 'var(--accent-color)' }}
+      <div className={styles.sectionTopBar}>
+        <h2 className={styles.sectionTitle}>Operational Profile &amp; Skills</h2>
+        <button
+          type="button"
+          className={isEditing ? styles.cancelEditBtn : styles.primaryActionBtn}
+          onClick={() => setIsEditing(!isEditing)}
         >
-            {isEditing ? 'CANCEL EDIT' : 'EDIT CREDENTIALS'}
+          {isEditing ? 'Cancel Edit' : 'Edit Credentials'}
         </button>
       </div>
 
-      <div className={styles.bentoGrid} style={{ gridTemplateColumns: 'repeat(12, 1fr)', gap: '1.5rem' }}>
+      {error && <div className={styles.errorBanner}>{error}</div>}
+
+      <div className={styles.bentoGrid}>
         {isEditing ? (
-          <div className={styles.bentoItem} style={{ gridColumn: 'span 12' }}>
-            <div className={styles.form}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <InputField 
-                    label="Full Name" 
-                    value={formData.name} 
-                    onChange={(e) => setFormData({...formData, name: e.target.value})} 
-                />
-                <InputField 
-                    label="Contact Phone" 
-                    value={formData.phone} 
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})} 
-                />
-              </div>
-
-              <div className={styles.selectGroup} style={{ marginTop: '1rem' }}>
-                  <label className={styles.selectLabel}>Deployed Availability</label>
-                  <select 
-                      className={styles.select}
-                      value={formData.availability}
-                      onChange={(e) => setFormData({...formData, availability: e.target.value})}
-                  >
-                      <option value="full-time">Full-time</option>
-                      <option value="part-time">Part-time</option>
-                      <option value="weekends">Weekends</option>
-                      <option value="on-call">On-call</option>
-                  </select>
-              </div>
-
-              <div style={{ marginTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.5rem' }}>
-                  <label className={styles.selectLabel}>Skill Acquisition (Fixed Roles Only)</label>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                      <select 
-                          className={styles.select}
-                          value={newSkill}
-                          onChange={(e) => setNewSkill(e.target.value)}
-                          style={{ flex: 1 }}
-                      >
-                          <option value="">-- Select a Specialized Skill --</option>
-                          {AVAILABLE_ROLES.map(role => (
-                              <option key={role} value={role}>{role}</option>
-                          ))}
-                      </select>
-                      <button className={styles.joinBtn} onClick={addSkill} disabled={!newSkill}>ADD SKILL</button>
-                  </div>
-
-                  <div className={styles.productTags}>
-                      {formData.skills.map(s => {
-                          const isVerified = profile.skills.find(ps => ps.name === s)?.verified;
-                          return (
-                            <span key={s} className={styles.tag} style={{ border: isVerified ? '1px solid #10b981' : '1px solid #f59e0b' }}>
-                                {s} 
-                                {!isVerified && <button onClick={() => removeSkill(s)} style={{ background: 'none', border: 'none', color: '#ef4444', marginLeft: '0.8rem', cursor: 'pointer', fontWeight: 'bold' }}>×</button>}
-                            </span>
-                          );
-                      })}
-                  </div>
-                  <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.5rem' }}>* Only unverified skills can be removed.</p>
-              </div>
-
-              <Button onClick={handleUpdate} style={{ marginTop: '2.5rem', width: '100%' }}>UPDATE PROTOCOL & SAVE</Button>
+          <div className={`${styles.bentoItem} ${styles.colSpan12}`}>
+            <div className={styles.formTwoCol}>
+              <InputField
+                label="Full Name"
+                name="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+              <InputField
+                label="Contact Phone"
+                name="phone"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              />
             </div>
+
+            <div className={styles.selectGroup}>
+              <label className={styles.selectLabel}>Availability</label>
+              <select
+                className={styles.select}
+                value={formData.availability}
+                onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
+              >
+                <option value="full-time">Full-time</option>
+                <option value="part-time">Part-time</option>
+                <option value="weekends">Weekends</option>
+                <option value="on-call">On-call</option>
+              </select>
+            </div>
+
+            <div className={styles.skillEditorSection}>
+              <label className={styles.selectLabel}>Add Specialized Crisis Skills</label>
+              <div className={styles.skillAddRow}>
+                <select
+                  className={styles.select}
+                  value={newSkill}
+                  onChange={(e) => setNewSkill(e.target.value)}
+                >
+                  <option value="">-- Select a Specialized Skill --</option>
+                  {AVAILABLE_ROLES.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
+                <button type="button" className={styles.joinBtn} onClick={addSkill} disabled={!newSkill}>
+                  Add Skill
+                </button>
+              </div>
+
+              <div className={styles.productTags}>
+                {formData.skills.map((s) => {
+                  const isVerified = profile.skills.find((ps) => ps.name === s)?.verified;
+                  return (
+                    <span
+                      key={s}
+                      className={isVerified ? styles.verifiedSkillChip : styles.pendingSkillChip}
+                    >
+                      {s}
+                      {!isVerified && (
+                        <button
+                          type="button"
+                          onClick={() => removeSkill(s)}
+                          className={styles.removeSkillBtn}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </span>
+                  );
+                })}
+              </div>
+              <p className={styles.helperHint}>* NGO-verified skills are permanently locked to your trust record.</p>
+            </div>
+
+            <Button onClick={handleUpdate} disabled={saving}>
+              {saving ? 'Saving Profile...' : 'Save Profile Updates'}
+            </Button>
           </div>
         ) : (
           <>
-            <div className={styles.bentoItem} style={{ gridColumn: 'span 4' }}>
-              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>👤</div>
-                <h3 style={{ margin: 0, color: 'white' }}>{profile.name}</h3>
-                <span className={styles.statusBadge} style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>{profile.status.toUpperCase()}</span>
+            <div className={`${styles.bentoItem} ${styles.colSpan4}`}>
+              <div className={styles.avatarHeader}>
+                <div className={styles.avatarCircle}>👤</div>
+                <h3 className={styles.profileName}>{profile.name}</h3>
+                <span className={styles.verifiedChip}>{(profile.status || 'active').toUpperCase()}</span>
               </div>
-              <div style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
-                <p><strong>EMAIL:</strong> {profile.email}</p>
-                <p><strong>PHONE:</strong> {profile.phone || 'NOT SET'}</p>
-                <p><strong>AVAILABILITY:</strong> {profile.availability.toUpperCase()}</p>
-                <p><strong>TRUST SCORE:</strong> <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>{profile.trustScore} XP</span></p>
+              <div className={styles.profileMeta}>
+                <div className={styles.dataRow}>
+                  <span className={styles.label}>Email</span>
+                  <span className={styles.value}>{profile.email}</span>
+                </div>
+                <div className={styles.dataRow}>
+                  <span className={styles.label}>Phone</span>
+                  <span className={styles.value}>{profile.phone || 'Not set'}</span>
+                </div>
+                <div className={styles.dataRow}>
+                  <span className={styles.label}>Availability</span>
+                  <span className={styles.value}>{(profile.availability || 'part-time').toUpperCase()}</span>
+                </div>
+                <div className={styles.dataRow}>
+                  <span className={styles.label}>Trust Score</span>
+                  <span className={styles.trustValue}>{profile.trustScore || 0} XP</span>
+                </div>
               </div>
             </div>
 
-            <div className={styles.bentoItem} style={{ gridColumn: 'span 8' }}>
-                <h3 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem' }}>VERIFIED CAPABILITIES</h3>
-                {verifiedSkills.length === 0 ? (
-                    <p style={{ color: '#64748b', fontSize: '0.9rem' }}>No skills verified by NGOs yet.</p>
-                ) : (
-                    <div className={styles.skillGrid} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        {verifiedSkills.map(s => (
-                            <div key={s.name} className={styles.roleItem} style={{ borderLeft: '4px solid #10b981', background: 'rgba(16, 185, 129, 0.05)' }}>
-                                <div>
-                                    <strong style={{ color: '#10b981' }}>{s.name}</strong>
-                                    <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.2rem' }}>
-                                        AUTH BY: {s.verifiedBy?.name}
-                                    </div>
-                                </div>
-                                <span style={{ color: '#10b981', fontSize: '0.8rem' }}>✓</span>
-                            </div>
-                        ))}
+            <div className={`${styles.bentoItem} ${styles.colSpan8}`}>
+              <h3 className={styles.cardTitle}>Verified Capabilities</h3>
+              {verifiedSkills.length === 0 ? (
+                <p className={styles.pendingNote}>No skills certified by an NGO yet.</p>
+              ) : (
+                <div className={styles.skillGrid}>
+                  {verifiedSkills.map((s) => (
+                    <div key={s.name} className={styles.skillCardVerified}>
+                      <div>
+                        <strong className={styles.skillVerifiedName}>{s.name}</strong>
+                        <div className={styles.skillSubtext}>
+                          Certified by: {s.verifiedBy?.name || 'Verified NGO'}
+                        </div>
+                        {s.verificationReport && (
+                          <div className={styles.skillSubtext}>Note: {s.verificationReport}</div>
+                        )}
+                      </div>
+                      <span className={styles.receivedLabel}>✓</span>
                     </div>
-                )}
+                  ))}
+                </div>
+              )}
 
-                <h3 style={{ color: 'white', marginTop: '2rem', marginBottom: '1.5rem', fontSize: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem' }}>PENDING VERIFICATION</h3>
-                {pendingSkills.length === 0 ? (
-                    <p style={{ color: '#64748b', fontSize: '0.9rem' }}>All skills have been reviewed.</p>
-                ) : (
-                    <div className={styles.skillGrid} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        {pendingSkills.map(s => (
-                            <div key={s.name} className={styles.roleItem} style={{ borderLeft: '4px solid #f59e0b', background: 'rgba(245, 158, 11, 0.05)' }}>
-                                <div>
-                                    <strong style={{ color: '#f59e0b' }}>{s.name}</strong>
-                                    <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.2rem' }}>
-                                        WAITING FOR NGO REVIEW
-                                    </div>
-                                </div>
-                                <span style={{ color: '#f59e0b', fontSize: '0.8rem' }}>!</span>
-                            </div>
-                        ))}
+              <h3 className={`${styles.cardTitle} ${styles.sectionDividerTitle}`}>Pending NGO Verification</h3>
+              {pendingSkills.length === 0 ? (
+                <p className={styles.pendingNote}>All listed skills have been certified.</p>
+              ) : (
+                <div className={styles.skillGrid}>
+                  {pendingSkills.map((s) => (
+                    <div key={s.name} className={styles.skillCardPending}>
+                      <div>
+                        <strong className={styles.skillPendingName}>{s.name}</strong>
+                        <div className={styles.skillSubtext}>Awaiting NGO skill review</div>
+                      </div>
+                      <span className={styles.rolePendingNote}>⏳</span>
                     </div>
-                )}
+                  ))}
+                </div>
+              )}
             </div>
           </>
         )}

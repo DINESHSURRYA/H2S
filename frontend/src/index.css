@@ -1,9 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
 @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
 
 :root {
   --bg-deep: #020617;
   --bg-surface: #0f172a;
+  --bg-card: #1e293b;
+  --accent-color: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-secondary: #ec4899;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border-subtle: rgba(255, 255, 255, 0.08);
 }
 
 /* Global Reset & Base Typography */
@@ -16,7 +27,7 @@
 body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-deep);
-  color: #f8fafc;
+  color: var(--text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;

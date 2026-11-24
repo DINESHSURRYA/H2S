@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H2S Admin Dashboard</title>
+    <title>H2S Admin Command Center</title>
     <style>
         :root {
             --primary: #6366f1;
             --primary-hover: #4f46e5;
-            --bg: #0f172a;
+            --accent: #ec4899;
+            --bg: #020617;
+            --surface: #0f172a;
             --card-bg: #1e293b;
             --text: #f8fafc;
             --text-muted: #94a3b8;
             --success: #22c55e;
+            --warning: #f59e0b;
             --danger: #ef4444;
             --border: #334155;
         }
@@ -21,59 +24,72 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, oxygen, ubuntu, cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         body {
             background-color: var(--bg);
             color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: center;
             min-height: 100vh;
+            padding: 2rem;
         }
 
         .container {
-            width: 90%;
-            max-width: 1000px;
-            background: var(--card-bg);
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--surface);
             padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 1.25rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
             border: 1px solid var(--border);
         }
 
         h1 {
-            margin-bottom: 1.5rem;
-            font-weight: 700;
+            font-weight: 800;
             letter-spacing: -0.025em;
-            background: linear-gradient(to right, #818cf8, #c084fc);
+            background: linear-gradient(135deg, #818cf8, #ec4899);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
         /* Login Styles */
         #login-section {
-            max-width: 400px;
-            margin: 0 auto;
+            max-width: 420px;
+            margin: 3rem auto;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        #login-section h1 {
+            margin-bottom: 0.5rem;
         }
 
         .form-group {
-            margin-bottom: 1rem;
+            margin-top: 1.25rem;
         }
 
         label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
+            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
             color: var(--text-muted);
+            font-weight: 600;
         }
 
         input {
             width: 100%;
-            padding: 0.75rem;
-            background: #0f172a;
+            padding: 0.75rem 0.9rem;
+            background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 0.5rem;
             color: var(--text);
@@ -86,22 +102,33 @@
         }
 
         button {
-            width: 100%;
-            padding: 0.75rem;
+            padding: 0.7rem 1.1rem;
             background: var(--primary);
             color: white;
             border: none;
             border-radius: 0.5rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
 
         button:hover {
             background: var(--primary-hover);
         }
 
-        /* Dashboard Styles */
+        .btn-full {
+            width: 100%;
+            margin-top: 1.5rem;
+        }
+
+        .login-hint {
+            margin-top: 1rem;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* Dashboard */
         #dashboard-section {
             display: none;
         }
@@ -110,65 +137,185 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.75rem;
+        }
+
+        .header-btns {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .btn-secondary {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #273549;
         }
 
         .btn-logout {
-            width: auto;
-            padding: 0.5rem 1rem;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+        }
+
+        .btn-logout:hover {
             background: var(--danger);
+            color: white;
+        }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.9rem;
+            padding: 1.25rem;
+        }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0.35rem 0;
+            color: var(--text);
+        }
+
+        .kpi-sub {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .search-input {
+            max-width: 280px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.9rem;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 1rem;
         }
 
         th, td {
             text-align: left;
-            padding: 1rem;
+            padding: 0.95rem 1rem;
             border-bottom: 1px solid var(--border);
+            font-size: 0.88rem;
         }
 
         th {
             color: var(--text-muted);
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
         }
 
         .status-badge {
-            padding: 0.25rem 0.5rem;
+            display: inline-block;
+            padding: 0.22rem 0.6rem;
             border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
         }
 
-        .status-pending { background: #92400e; color: #fef3c7; }
-        .status-active { background: #065f46; color: #d1fae5; }
-        .status-suspended { background: #991b1b; color: #fee2e2; }
+        .status-pending { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+        .status-active, .status-resolved { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+        .status-validated, .status-in-progress { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+        .status-suspended, .status-critical { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+        .status-high { background: rgba(249, 115, 22, 0.2); color: #fdba74; }
+        .status-medium { background: rgba(234, 179, 8, 0.2); color: #fde047; }
+        .status-low { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; }
 
         .actions-btn {
             background: transparent;
             border: 1px solid var(--border);
-            padding: 0.4rem 0.8rem;
+            padding: 0.35rem 0.75rem;
             font-size: 0.75rem;
-            width: auto;
-            margin-right: 0.5rem;
-        }
-
-        .actions-btn:hover {
-            background: var(--border);
+            margin-right: 0.4rem;
         }
 
         .btn-verify { border-color: var(--success); color: var(--success); }
-        .btn-suspend { border-color: var(--danger); color: var(--danger); }
+        .btn-verify:hover { background: var(--success); color: #052e16; }
 
-        .loading {
+        .btn-suspend { border-color: var(--danger); color: var(--danger); }
+        .btn-suspend:hover { background: var(--danger); color: white; }
+
+        .empty-state {
             text-align: center;
-            padding: 2rem;
+            padding: 2.5rem;
             color: var(--text-muted);
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .error-text {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 0.9rem;
+            text-align: center;
         }
     </style>
 </head>
@@ -176,41 +323,49 @@
     <div class="container">
         <!-- Login Section -->
         <div id="login-section">
-            <h1>Admin Login</h1>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" placeholder="admin@h2s.com">
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="••••••••">
-            </div>
-            <button onclick="login()">Login</button>
-            <p id="login-error" style="color: var(--danger); font-size: 0.8rem; margin-top: 1rem; text-align: center;"></p>
+            <h1>H2S Admin Portal</h1>
+            <p class="subtitle">Platform Authority &amp; Governance Access</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">Admin Email</label>
+                    <input type="email" id="email" placeholder="admin@h2s.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-full">Sign In to Command Center</button>
+            </form>
+            <p id="login-error" class="error-text"></p>
+            <p class="login-hint">Default seeded credentials: admin@h2s.com / admin123</p>
         </div>
 
         <!-- Dashboard Section -->
         <div id="dashboard-section">
             <div class="header-actions">
-                <h1>H2S Admin Panel</h1>
-                <button class="btn-logout" onclick="logout()">Logout</button>
+                <div>
+                    <h1>H2S Admin Command Center</h1>
+                    <p class="subtitle">Governance, NGO Verification, Volunteer Oversight &amp; Live Crisis Telemetry</p>
+                </div>
+                <div class="header-btns">
+                    <button class="btn-secondary" id="refresh-btn">Refresh Data</button>
+                    <button class="btn-logout" id="logout-btn">Logout</button>
+                </div>
             </div>
 
-            <div id="ngo-list-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>NGO Name</th>
-                            <th>Email</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ngo-list-body">
-                        <!-- NGO rows will be inserted here -->
-                    </tbody>
-                </table>
-                <div id="loading" class="loading">Loading NGOs...</div>
+            <div class="kpi-grid" id="kpi-grid"></div>
+
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="ngos">NGO Verification</button>
+                    <button class="tab-btn" data-tab="volunteers">Volunteers</button>
+                    <button class="tab-btn" data-tab="requests">Crisis Requests</button>
+                </div>
+                <input type="text" id="search-input" class="search-input" placeholder="Search current view...">
+            </div>
+
+            <div class="table-wrap" id="table-container">
+                <div class="empty-state">Loading platform data...</div>
             </div>
         </div>
     </div>
@@ -218,99 +373,287 @@
     <script>
         const API_URL = '/admin/api';
         let token = localStorage.getItem('adminToken');
+        let activeTab = 'ngos';
+        let cache = { overview: null, ngos: [], volunteers: [], requests: [] };
+
+        const esc = (val) => {
+            const div = document.createElement('div');
+            div.textContent = val == null ? '' : String(val);
+            return div.innerHTML;
+        };
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await login();
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', logout);
+        document.getElementById('refresh-btn').addEventListener('click', loadAllData);
+        document.getElementById('search-input').addEventListener('input', renderTable);
+
+        document.querySelectorAll('.tab-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeTab = btn.dataset.tab;
+                document.getElementById('search-input').value = '';
+                renderTable();
+            });
+        });
 
         if (token) {
             showDashboard();
         }
 
+        async function apiFetch(path, options = {}) {
+            const res = await fetch(`${API_URL}${path}`, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                    ...(options.headers || {}),
+                },
+            });
+            if (res.status === 401 && path !== '/login') {
+                logout();
+                throw new Error('Unauthorized');
+            }
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Request failed');
+            return data;
+        }
+
         async function login() {
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-            const errorElement = document.getElementById('login-error');
+            const errorEl = document.getElementById('login-error');
+            errorEl.textContent = '';
 
             try {
-                const response = await fetch(`${API_URL}/login`, {
+                const data = await apiFetch('/login', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ email, password }),
                 });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    localStorage.setItem('adminToken', data.token);
-                    token = data.token;
-                    showDashboard();
-                } else {
-                    errorElement.textContent = data.message || 'Login failed';
-                }
-            } catch (error) {
-                errorElement.textContent = 'Server error';
+                localStorage.setItem('adminToken', data.token);
+                token = data.token;
+                showDashboard();
+            } catch (err) {
+                errorEl.textContent = err.message || 'Login failed';
             }
         }
 
         function logout() {
             localStorage.removeItem('adminToken');
-            location.reload();
+            token = null;
+            document.getElementById('dashboard-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
         }
 
         function showDashboard() {
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('dashboard-section').style.display = 'block';
-            fetchNgos();
+            loadAllData();
         }
 
-        async function fetchNgos() {
-            const tableBody = document.getElementById('ngo-list-body');
-            const loading = document.getElementById('loading');
-            
+        async function loadAllData() {
             try {
-                const response = await fetch(`${API_URL}/ngos`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (response.status === 401) return logout();
-
-                const ngos = await response.json();
-                loading.style.display = 'none';
-                tableBody.innerHTML = '';
-
-                ngos.forEach(ngo => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${ngo.name}</td>
-                        <td>${ngo.email}</td>
-                        <td><span class="status-badge status-${ngo.status}">${ngo.status}</span></td>
-                        <td>
-                            <button class="actions-btn btn-verify" onclick="verifyNgo('${ngo._id}', 'active')">Verify</button>
-                            <button class="actions-btn btn-suspend" onclick="verifyNgo('${ngo._id}', 'suspended')">Suspend</button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            } catch (error) {
-                loading.textContent = 'Error loading data';
+                const [overview, ngos, volunteers, requests] = await Promise.all([
+                    apiFetch('/overview'),
+                    apiFetch('/ngos'),
+                    apiFetch('/volunteers'),
+                    apiFetch('/requests'),
+                ]);
+                cache = { overview, ngos, volunteers, requests };
+                renderKpis();
+                renderTable();
+            } catch (err) {
+                document.getElementById('table-container').innerHTML =
+                    `<div class="empty-state">Error loading admin data: ${esc(err.message)}</div>`;
             }
+        }
+
+        function renderKpis() {
+            const o = cache.overview;
+            if (!o) return;
+            const grid = document.getElementById('kpi-grid');
+            grid.innerHTML = `
+                <div class="kpi-card">
+                    <div class="kpi-label">Registered NGOs</div>
+                    <div class="kpi-value">${esc(o.ngos.total)}</div>
+                    <div class="kpi-sub">${esc(o.ngos.active)} verified • ${esc(o.ngos.pending)} pending</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Volunteers</div>
+                    <div class="kpi-value">${esc(o.volunteers.total)}</div>
+                    <div class="kpi-sub">${esc(o.volunteers.active)} active • ${esc(o.volunteers.suspended)} suspended</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Crisis Requests</div>
+                    <div class="kpi-value">${esc(o.requests.total)}</div>
+                    <div class="kpi-sub">${esc(o.requests.pending)} pending • ${esc(o.requests.resolved)} resolved</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Supply Units Granted</div>
+                    <div class="kpi-value">${esc(o.grants.totalUnitsAllocated)}</div>
+                    <div class="kpi-sub">${esc(o.grants.deliveredCount)} / ${esc(o.grants.totalGrants)} deliveries confirmed</div>
+                </div>
+            `;
+        }
+
+        function renderTable() {
+            const container = document.getElementById('table-container');
+            const query = document.getElementById('search-input').value.trim().toLowerCase();
+
+            if (activeTab === 'ngos') {
+                const rows = cache.ngos.filter(
+                    (n) =>
+                        n.name?.toLowerCase().includes(query) ||
+                        n.email?.toLowerCase().includes(query) ||
+                        (n.registrationNumber || '').toLowerCase().includes(query)
+                );
+                if (!rows.length) {
+                    container.innerHTML = '<div class="empty-state">No NGOs match your search.</div>';
+                    return;
+                }
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Organization</th>
+                                <th>Reg # / Contact</th>
+                                <th>Trust Score</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows
+                                .map(
+                                    (ngo) => `
+                                <tr>
+                                    <td><strong>${esc(ngo.name)}</strong><div class="mono">${esc(ngo.email)}</div></td>
+                                    <td>${esc(ngo.registrationNumber || 'Unregistered')}<div class="mono">${esc(ngo.phone || 'No phone')}</div></td>
+                                    <td><strong>${esc(ngo.trustScore || 0)} XP</strong></td>
+                                    <td><span class="status-badge status-${esc(ngo.status)}">${esc(ngo.status)}</span></td>
+                                    <td>
+                                        ${ngo.status !== 'active' ? `<button class="actions-btn btn-verify" onclick="verifyNgo('${esc(ngo._id)}', 'active')">Verify &amp; Activate</button>` : ''}
+                                        ${ngo.status !== 'suspended' ? `<button class="actions-btn btn-suspend" onclick="verifyNgo('${esc(ngo._id)}', 'suspended')">Suspend</button>` : ''}
+                                    </td>
+                                </tr>`
+                                )
+                                .join('')}
+                        </tbody>
+                    </table>`;
+                return;
+            }
+
+            if (activeTab === 'volunteers') {
+                const rows = cache.volunteers.filter(
+                    (v) =>
+                        v.name?.toLowerCase().includes(query) ||
+                        v.email?.toLowerCase().includes(query) ||
+                        (v.skills || []).some((s) => s.name?.toLowerCase().includes(query))
+                );
+                if (!rows.length) {
+                    container.innerHTML = '<div class="empty-state">No volunteers match your search.</div>';
+                    return;
+                }
+                container.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Volunteer</th>
+                                <th>Skills (Verified / Total)</th>
+                                <th>Trust Score</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows
+                                .map((v) => {
+                                    const verifiedCount = (v.skills || []).filter((s) => s.verified).length;
+                                    const totalSkills = (v.skills || []).length;
+                                    const skillNames = (v.skills || []).map((s) => (s.verified ? `✓ ${s.name}` : s.name)).join(', ');
+                                    return `
+                                    <tr>
+                                        <td><strong>${esc(v.name)}</strong><div class="mono">${esc(v.email)}</div></td>
+                                        <td>${verifiedCount}/${totalSkills} verified<div class="mono">${esc(skillNames || 'None')}</div></td>
+                                        <td><strong>${esc(v.trustScore || 0)} XP</strong></td>
+                                        <td><span class="status-badge status-${esc(v.status)}">${esc(v.status)}</span></td>
+                                        <td>
+                                            ${v.status !== 'active' ? `<button class="actions-btn btn-verify" onclick="setVolunteerStatus('${esc(v._id)}', 'active')">Activate</button>` : ''}
+                                            ${v.status !== 'suspended' ? `<button class="actions-btn btn-suspend" onclick="setVolunteerStatus('${esc(v._id)}', 'suspended')">Suspend</button>` : ''}
+                                        </td>
+                                    </tr>`;
+                                })
+                                .join('')}
+                        </tbody>
+                    </table>`;
+                return;
+            }
+
+            // Requests Tab
+            const rows = cache.requests.filter(
+                (r) =>
+                    r.crisisDescription?.toLowerCase().includes(query) ||
+                    (r.category || '').toLowerCase().includes(query) ||
+                    (r.status || '').toLowerCase().includes(query) ||
+                    r._id?.toLowerCase().includes(query)
+            );
+            if (!rows.length) {
+                container.innerHTML = '<div class="empty-state">No crisis requests match your search.</div>';
+                return;
+            }
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Crisis &amp; ID</th>
+                            <th>Category / Urgency</th>
+                            <th>Affected</th>
+                            <th>Status</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows
+                            .map(
+                                (r) => `
+                            <tr>
+                                <td><strong>${esc(r.crisisDescription)}</strong><div class="mono">ID: ${esc(r._id)}</div></td>
+                                <td>${esc(r.category || 'Other')} <span class="status-badge status-${esc(r.urgency || 'medium')}">${esc(r.urgency || 'medium')}</span></td>
+                                <td>${esc(r.affectedCount || 1)} people</td>
+                                <td><span class="status-badge status-${esc(r.status)}">${esc(r.status)}</span></td>
+                                <td class="mono">${esc(r.location?.latitude?.toFixed(3))}, ${esc(r.location?.longitude?.toFixed(3))}</td>
+                            </tr>`
+                            )
+                            .join('')}
+                    </tbody>
+                </table>`;
         }
 
         async function verifyNgo(id, status) {
             try {
-                const response = await fetch(`${API_URL}/ngos/${id}/verify`, {
+                await apiFetch(`/ngos/${id}/verify`, {
                     method: 'PATCH',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ status })
+                    body: JSON.stringify({ status }),
                 });
+                await loadAllData();
+            } catch (err) {
+                alert(err.message || 'Failed to update NGO status');
+            }
+        }
 
-                if (response.ok) {
-                    fetchNgos();
-                } else {
-                    alert('Failed to update status');
-                }
-            } catch (error) {
-                alert('Server error');
+        async function setVolunteerStatus(id, status) {
+            try {
+                await apiFetch(`/volunteers/${id}/status`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status }),
+                });
+                await loadAllData();
+            } catch (err) {
+                alert(err.message || 'Failed to update volunteer status');
             }
         }
     </script>
